@@ -12,4 +12,4 @@ export PINTOSHOME="/home/pintos"
 
 ### Additional Links
 * [Wikipedia](https://en.wikipedia.org/wiki/Pintos)
-* [Pintos table of contetns from Stanford](https://web.stanford.edu/class/cs140/projects/pintos/pintos.html)
+* [Pintos table of contents from Stanford](https://web.stanford.edu/class/cs140/projects/pintos/pintos.html)
