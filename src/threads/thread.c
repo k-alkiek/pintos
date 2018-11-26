@@ -1,9 +1,11 @@
 #include "threads/thread.h"
+#include "threads/fixed-point.h"
 #include <debug.h>
 #include <stddef.h>
 #include <random.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include "threads/flags.h"
 #include "threads/interrupt.h"
 #include "threads/intr-stubs.h"
@@ -19,6 +21,12 @@
    Used to detect stack overflow.  See the big comment at the top
    of thread.h for details. */
 #define THREAD_MAGIC 0xcd6abf4b
+
+/* Load_avg for BSD scheduling. */
+static int load_avg;
+
+/* dealing with real value. */
+#define fraction (1<<14)
 
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
@@ -71,6 +79,18 @@ static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
 
+
+/* priority compartor. */
+static bool
+priority_comparator(const struct list_elem *a_, const struct list_elem *b_,
+               void *aux UNUSED)
+{
+  const struct thread *a = list_entry (a_, struct thread, elem);
+  const struct thread *b = list_entry (b_, struct thread, elem);
+  return a->priority > b->priority;
+}
+
+
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
    general and it is possible in this case only because loader.S
@@ -98,6 +118,8 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
+
+  load_avg = 0;
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -200,6 +222,15 @@ thread_create (const char *name, int priority,
 
   /* Add to run queue. */
   thread_unblock (t);
+
+  if (thread_mlfqs)
+  {
+    // calculate BSD.
+    calculate_recent_cpu(t,NULL);
+    calculate_advanced_priority(t,NULL);
+    calculate_recent_cpu(thread_current(),NULL);
+    calculate_advanced_priority(thread_current(),NULL);
+  }
 
   return tid;
 }
@@ -347,17 +378,21 @@ thread_get_priority (void)
 
 /* Sets the current thread's nice value to NICE. */
 void
-thread_set_nice (int nice UNUSED) 
+thread_set_nice (int nice) 
 {
-  /* Not yet implemented. */
+  ASSERT(nice >= NICE_MIN && nice <= NICE_MAX);
+  thread_current()->nice = nice;
+  // recalculate the priorities.
+  calculate_advanced_priority(thread_current,NULL);
+  // update the ready list. 
+  // relingish the CPU if the current thread has lower its priority.
 }
 
 /* Returns the current thread's nice value. */
 int
 thread_get_nice (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+  return thread_current()->nice;
 }
 
 /* Returns 100 times the system load average. */
@@ -365,7 +400,7 @@ int
 thread_get_load_avg (void) 
 {
   /* Not yet implemented. */
-  return 0;
+  return CONVERT_TO_INT_NEAREST (MUL_INT(load_avg,100));
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
@@ -373,8 +408,76 @@ int
 thread_get_recent_cpu (void) 
 {
   /* Not yet implemented. */
-  return 0;
+  return CONVERT_TO_INT_NEAREST (
+              MUL_INT(thread_current()->recent_CPU,100)) ;
 }
+
+/* the BSD section. */
+
+void
+calculate_advanced_priority_for_all_threads(void)
+{
+  thread_foreach(calculate_advanced_priority,NULL);
+  if(!list_empty(&ready_list))
+  {
+    list_sort(&ready_list,priority_comparator,NULL);
+  }
+}
+/*
+  priority equation
+  priority = PRI_MAX - recent_CPU / 4 - nice * 2
+*/
+void 
+calculate_advanced_priority(struct thread *cur, void *aux UNUSED)
+{
+  if(cur != idle_thread)
+  {
+    cur->priority = PRI_MAX -
+    CONVERT_TO_INT_NEAREST(DIV_INT(cur->recent_CPU , 4)) - cur->nice * 2;
+  }
+  if(cur->priority > PRI_MAX)
+  {
+    cur->priority = PRI_MAX; 
+  }
+  else if(cur->priority < PRI_MIN)
+  {
+    cur->priority = PRI_MIN;
+  }
+}
+
+/*
+  calculate recent cpu usage for every thread.
+  using the formela
+  recent_cpu = (2*load_avg)/(2*load_avg + 1) * recent_cpu + nice
+*/
+void
+calculate_recent_cpu_for_all_threads(void)
+{
+  thread_foreach(calculate_recent_cpu,NULL);
+}
+void
+calculate_recent_cpu(struct thread *cur,void *aux UNUSED)
+{
+  if(cur != idle_thread)
+  {
+    int load = MUL_INT(load_avg , 2);
+    load = DIVIDE(load,ADD_INT(load,1));
+    int coff_of_recent_CPU = MULTIPLE(load,cur->recent_CPU);
+    cur->recent_CPU = ADD_INT(coff_of_recent_CPU,cur->nice);
+  }
+}
+
+void
+calculat_load_avg(void)
+{
+  int ready_list_size = list_size(&ready_list);
+  load_avg = MULTIPLE(DIV_INT(CONVERT_TO_FP (59), 60),load_avg)+
+            MULT_INT (DIV_INT (CONVERT_TO_FP (1), 60), ready_list_size);
+
+}
+
+/* end of BSD section*/
+
 
 /* Idle thread.  Executes when no other thread is ready to run.
 
@@ -582,3 +685,5 @@ allocate_tid (void)
 /* Offset of `stack' member within `struct thread'.
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
+
+
