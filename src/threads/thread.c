@@ -5,7 +5,6 @@
 #include <random.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
 #include "threads/flags.h"
 #include "threads/interrupt.h"
 #include "threads/intr-stubs.h"
@@ -383,7 +382,7 @@ thread_set_nice (int nice)
   ASSERT(nice >= NICE_MIN && nice <= NICE_MAX);
   thread_current()->nice = nice;
   // recalculate the priorities.
-  calculate_advanced_priority(thread_current,NULL);
+  calculate_advanced_priority(thread_current(),NULL);
   // update the ready list. 
   // relingish the CPU if the current thread has lower its priority.
 }
@@ -400,7 +399,7 @@ int
 thread_get_load_avg (void) 
 {
   /* Not yet implemented. */
-  return CONVERT_TO_INT_NEAREST (MUL_INT(load_avg,100));
+  return CONVERT_TO_INT_NEAREST (MULT_INT(load_avg,100));
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
@@ -409,7 +408,7 @@ thread_get_recent_cpu (void)
 {
   /* Not yet implemented. */
   return CONVERT_TO_INT_NEAREST (
-              MUL_INT(thread_current()->recent_CPU,100)) ;
+              MULT_INT(thread_current()->recent_CPU,100)) ;
 }
 
 /* the BSD section. */
@@ -460,7 +459,7 @@ calculate_recent_cpu(struct thread *cur,void *aux UNUSED)
 {
   if(cur != idle_thread)
   {
-    int load = MUL_INT(load_avg , 2);
+    int load = MULT_INT(load_avg , 2);
     load = DIVIDE(load,ADD_INT(load,1));
     int coff_of_recent_CPU = MULTIPLE(load,cur->recent_CPU);
     cur->recent_CPU = ADD_INT(coff_of_recent_CPU,cur->nice);
@@ -468,7 +467,7 @@ calculate_recent_cpu(struct thread *cur,void *aux UNUSED)
 }
 
 void
-calculat_load_avg(void)
+calculate_load_avg(void)
 {
   int ready_list_size = list_size(&ready_list);
   load_avg = MULTIPLE(DIV_INT(CONVERT_TO_FP (59), 60),load_avg)+

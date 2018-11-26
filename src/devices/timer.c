@@ -180,7 +180,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
     cur = thread_current ();
     if (cur->status == THREAD_RUNNING)
     {
-      cur->recent_cpu = cur->recent_cpu + (1<<14);
+      cur->recent_CPU = cur->recent_CPU + (1<<14);
     }
     if (ticks % 4 == 0)
     {
