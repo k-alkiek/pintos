@@ -4,6 +4,7 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
+#include <kernel/list.h>
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -100,6 +101,7 @@ struct thread
 
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
+    int64_t wakeTime;
   };
 
 /* If false (default), use round-robin scheduler.
@@ -137,5 +139,6 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
+bool cmp_wakeTime(struct list_elem *first,struct list_elem *second, void *aux);
 
 #endif /* threads/thread.h */
