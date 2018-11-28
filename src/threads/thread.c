@@ -569,6 +569,8 @@ init_thread (struct thread *t, const char *name, int priority)
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
   t->magic = THREAD_MAGIC;
+  t->recent_CPU = 0;
+  t->nice = 0;
 
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
@@ -689,4 +691,11 @@ allocate_tid (void)
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
+bool 
+cmp_wakeTime(struct list_elem *first,struct list_elem *second , void *aux)
+{
+  struct thread *f = list_entry (first, struct thread, allelem); 
+  struct thread *s = list_entry (second, struct thread, allelem);
+  return  f->wakeTime < s->wakeTime;  
+}
 
