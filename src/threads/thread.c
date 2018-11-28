@@ -470,6 +470,10 @@ void
 calculate_load_avg(void)
 {
   int ready_list_size = list_size(&ready_list);
+  if (thread_current() != idle_thread)
+  {
+      ready_list_size++;
+  }
   load_avg = MULTIPLE(DIV_INT(CONVERT_TO_FP (59), 60),load_avg)+
             MULT_INT (DIV_INT (CONVERT_TO_FP (1), 60), ready_list_size);
 
