@@ -99,7 +99,7 @@ timer_sleep (int64_t ticks)
   enum intr_level curlevel = intr_disable();
   struct thread *t = thread_current ();
   t->wakeTime = timer_ticks ()+ticks;
-  list_insert_ordered (&sleep_list,&t->allelem,cmp_wakeTime,NULL);
+  list_insert_ordered (&sleep_list,&t->elem,cmp_wakeTime,NULL);
   thread_block ();
   intr_set_level(curlevel);
 }
@@ -180,27 +180,47 @@ timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
   thread_tick ();
-  
+
   if(!list_empty(&sleep_list))
   {
      struct list_elem *front = list_front (&sleep_list);
-     struct thread *t = list_entry (front, struct thread, allelem);
+     struct thread *t = list_entry (front, struct thread, elem);
      while (t->wakeTime <= ticks)
      {
         list_remove (front);
-	thread_unblock(t);
+        thread_unblock(t);
         if(!list_empty(&sleep_list))
-	{
-		front = list_front (&sleep_list);
-		t = list_entry (front, struct thread, allelem);
- 	}
-	else
-	{
-	break;
-	}
+        {
+          front = list_front (&sleep_list);
+          t = list_entry (front, struct thread, elem);
+        }
+        else
+        {
+          break;
+        }
      }
   }
- 
+
+  /* BSD step. */
+  if(thread_mlfqs)
+  {
+    struct thread *cur;
+    cur = thread_current ();
+    if (cur->status == THREAD_RUNNING)
+    {
+      cur->recent_CPU = cur->recent_CPU + (1<<14);
+    }
+    if (ticks % 4 == 0)
+    {
+      calculate_advanced_priority_for_all_threads();
+    }
+    if(ticks % TIMER_FREQ == 0)
+    {
+      calculate_load_avg();
+      calculate_recent_cpu_for_all_threads();
+    }
+  }
+
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer

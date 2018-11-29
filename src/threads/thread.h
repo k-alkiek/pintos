@@ -25,6 +25,11 @@ typedef int tid_t;
 #define PRI_DEFAULT 31                  /* Default priority. */
 #define PRI_MAX 63                      /* Highest priority. */
 
+/* Thread niceness. */
+#define NICE_MIN -20                    /* Lowest niceness. */
+#define NICE_DEFAULT 0                  /* Default niceness. */
+#define NICE_MAX 20                     /* Highest niceness. */
+
 /* A kernel thread or user process.
 
    Each thread structure is stored in its own 4 kB page.  The
@@ -90,7 +95,8 @@ struct thread
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
-
+    int nice;                           /* determine the niceness of the thread. */
+    int recent_CPU;                     /* recent usage of CPU. */
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
@@ -139,9 +145,15 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
-bool cmp_wakeTime(struct list_elem *first,struct list_elem *second, void *aux);
-/* Functor to override the relational operators */
-bool priority_comparator(const struct list_elem *first_elem,
-                                const struct list_elem *second_elem, void *aux);
+bool cmp_wakeTime(const struct list_elem *first,const struct list_elem *second, void *aux);
+bool priority_comparator(const struct list_elem *a_, const struct list_elem *b_,
+               void *aux UNUSED);
+
+/* BSD section. */
+void calculate_advanced_priority_for_all_threads(void);
+void calculate_advanced_priority(struct thread *cur, void *aux);
+void calculate_recent_cpu_for_all_threads(void);
+void calculate_recent_cpu(struct thread *cur,void *aux);
+void calculate_load_avg(void);
 
 #endif /* threads/thread.h */
