@@ -145,7 +145,7 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
-bool cmp_wakeTime(struct list_elem *first,struct list_elem *second, void *aux);
+bool cmp_wakeTime(const struct list_elem *first,const struct list_elem *second, void *aux);
 
 /* BSD section. */
 void calculate_advanced_priority_for_all_threads(void);

@@ -5,6 +5,7 @@
 #include <random.h>
 #include <stdio.h>
 #include <string.h>
+#include "devices/timer.h"
 #include "threads/flags.h"
 #include "threads/interrupt.h"
 #include "threads/intr-stubs.h"
@@ -23,6 +24,9 @@
 
 /* Load_avg for BSD scheduling. */
 static int load_avg;
+
+/* access sleep_list of threads. */
+extern struct list sleep_list;
 
 /* dealing with real value. */
 #define fraction (1<<14)
@@ -338,7 +342,7 @@ thread_yield (void)
 
   old_level = intr_disable ();
   if (cur != idle_thread) 
-    list_push_back (&ready_list, &cur->elem);
+    list_insert_ordered(&ready_list, &cur->elem,priority_comparator,NULL);
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
@@ -416,11 +420,15 @@ thread_get_recent_cpu (void)
 void
 calculate_advanced_priority_for_all_threads(void)
 {
+  enum intr_level old_level;
+  old_level = intr_disable();
   thread_foreach(calculate_advanced_priority,NULL);
   if(!list_empty(&ready_list))
   {
     list_sort(&ready_list,priority_comparator,NULL);
+    list_sort(&sleep_list,priority_comparator,NULL);
   }
+  intr_set_level (old_level);
 }
 /*
   priority equation
@@ -452,7 +460,10 @@ calculate_advanced_priority(struct thread *cur, void *aux UNUSED)
 void
 calculate_recent_cpu_for_all_threads(void)
 {
+  enum intr_level old_level;
+  old_level = intr_disable();
   thread_foreach(calculate_recent_cpu,NULL);
+  intr_set_level(old_level);
 }
 void
 calculate_recent_cpu(struct thread *cur,void *aux UNUSED)
@@ -692,10 +703,10 @@ allocate_tid (void)
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
 bool 
-cmp_wakeTime(struct list_elem *first,struct list_elem *second , void *aux)
+cmp_wakeTime(const struct list_elem *first,const struct list_elem *second , void *aux)
 {
-  struct thread *f = list_entry (first, struct thread, allelem); 
-  struct thread *s = list_entry (second, struct thread, allelem);
+  const struct thread *f = list_entry (first, struct thread, elem); 
+  const struct thread *s = list_entry (second, struct thread, elem);
   return  f->wakeTime < s->wakeTime;  
 }
 

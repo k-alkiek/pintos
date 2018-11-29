@@ -99,7 +99,7 @@ timer_sleep (int64_t ticks)
   enum intr_level curlevel = intr_disable();
   struct thread *t = thread_current ();
   t->wakeTime = timer_ticks ()+ticks;
-  list_insert_ordered (&sleep_list,&t->allelem,cmp_wakeTime,NULL);
+  list_insert_ordered (&sleep_list,&t->elem,cmp_wakeTime,NULL);
   thread_block ();
   intr_set_level(curlevel);
 }
@@ -184,7 +184,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
   if(!list_empty(&sleep_list))
   {
      struct list_elem *front = list_front (&sleep_list);
-     struct thread *t = list_entry (front, struct thread, allelem);
+     struct thread *t = list_entry (front, struct thread, elem);
      while (t->wakeTime <= ticks)
      {
         list_remove (front);
@@ -192,7 +192,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
         if(!list_empty(&sleep_list))
         {
           front = list_front (&sleep_list);
-          t = list_entry (front, struct thread, allelem);
+          t = list_entry (front, struct thread, elem);
         }
         else
         {
