@@ -1,5 +1,14 @@
 # Config files
 src/threads/Make.vars
-src/utils/Pintos.pm
-src/utils/pintos
-src/utils/pintos-gdb
+src/utils
+src/Make.config
+src/Makefile
+src/Makefile.build
+src/Makefile.kernel
+src/Makefile.userprog
+src/misc
+src/vm
+src/userprog
+src/filesys
+sys/lib
+src/threads/build
