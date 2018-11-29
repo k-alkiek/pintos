@@ -140,5 +140,8 @@ void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 bool cmp_wakeTime(struct list_elem *first,struct list_elem *second, void *aux);
+/* Functor to override the relational operators */
+bool priority_comparator(const struct list_elem *first_elem,
+                                const struct list_elem *second_elem, void *aux);
 
 #endif /* threads/thread.h */
