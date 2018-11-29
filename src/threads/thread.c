@@ -84,7 +84,7 @@ static tid_t allocate_tid (void);
 
 
 /* priority compartor. */
-static bool
+bool
 priority_comparator(const struct list_elem *a_, const struct list_elem *b_,
                void *aux UNUSED)
 {
