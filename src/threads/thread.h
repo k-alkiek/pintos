@@ -155,5 +155,6 @@ void calculate_advanced_priority(struct thread *cur, void *aux);
 void calculate_recent_cpu_for_all_threads(void);
 void calculate_recent_cpu(struct thread *cur,void *aux);
 void calculate_load_avg(void);
+void next_thread();
 
 #endif /* threads/thread.h */

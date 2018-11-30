@@ -241,6 +241,9 @@ thread_create (const char *name, int priority,
     calculate_advanced_priority(thread_current(),NULL);
   }
 
+  old_level = intr_disable ();
+  next_thread();
+  intr_set_level (old_level);
   return tid;
 }
 
@@ -377,12 +380,16 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority) 
 {
+  if(thread_mlfqs)
+    return;
+  
   enum intr_level old_level;
   ASSERT (!intr_context ());
 
   old_level = intr_disable ();
   // TODO remove and  insert thread according to its new priority value.
   thread_current ()->priority = new_priority;
+  next_thread();
   intr_set_level (old_level);
 }
 
@@ -732,3 +739,28 @@ priority_comparator(const struct list_elem *first_elem,
     return false;
 }
 
+void
+next_thread()
+{
+  if ( list_empty(&ready_list) )
+    {
+      return;
+    }
+  struct thread *t = list_entry(list_front(&ready_list),
+				struct thread, elem);
+  if (intr_context())
+    {
+      thread_ticks++;
+      if ( thread_current()->priority < t->priority ||
+	   (thread_ticks >= TIME_SLICE &&
+	    thread_current()->priority == t->priority) )
+	{
+	  intr_yield_on_return();
+	}
+      return;
+    }
+  if (thread_current()->priority < t->priority)
+    {
+      thread_yield();
+    }
+}
