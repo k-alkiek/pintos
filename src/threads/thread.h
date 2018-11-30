@@ -5,6 +5,7 @@
 #include <list.h>
 #include <stdint.h>
 #include <kernel/list.h>
+#include "synch.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -108,6 +109,10 @@ struct thread
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
     int64_t wakeTime;
+    int initial_priority;               /* Initial priority. */
+    struct list donations;
+    struct list_elem donation_elem;
+    struct lock *waiting_on;
   };
 
 /* If false (default), use round-robin scheduler.
@@ -156,5 +161,8 @@ void calculate_recent_cpu_for_all_threads(void);
 void calculate_recent_cpu(struct thread *cur,void *aux);
 void calculate_load_avg(void);
 void next_thread();
+void donate_priority();
+void remove_with_lock(struct lock *lock);
+void refresh_priority ();
 
 #endif /* threads/thread.h */
