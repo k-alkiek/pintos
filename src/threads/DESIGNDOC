@@ -87,20 +87,62 @@ It minimizes the amount of time spent in the timer interrupt handler
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
+In src/threads/thread.h
+
+struct thread
+	int initial_priority;
+	A variable that stores the initial priority of a thread. Its value is initialized with the thread creation and only changes with thread_set_priority()
+	
+	struct list donations;
+	A list of all threads that are potential donors to this thread. Whenever a thread attempts to acquire a lock held by the current thread, the attempting thread is added as a potential donor to the holding thread. This list is used when processing the effective prioirty to be used in the current thread.
+
+	struct list_elem donation_elem;
+	List element of the thread in the donations list. Since every thread can only wait for one lock at a time, it will only be associated as a potential donor for only one thread.
+
+	struct lock *waiting_on;
+	Pointer to the lock that the current thread attempted to acquire but is waiting on. Whenever a lock is released, the list of donations is filtered from threads that were waiting on the lock being released. The new effective priority for the current thread is recomputed from the remaining donors in the donations list.
+
+
 >> B2: Explain the data structure used to track priority donation.
 >> Use ASCII art to diagram a nested donation.  (Alternately, submit a
 >> .png file.)
+
+Every thread has a pointer to the lock its waiting on and thus has a pointer the lock holder. This structure is akin to an n-ary tree where each thread effectively has a pointer to the thread that it can donate to as its parent and every thread has a list of donations which can be children threads that are potential donors.
+
+                              +-----+
+      wait_on_lock->holder    |     |
+     +----------------------> |  L  |
+     |                        |     |
+     |       +--------------> +--+--+
+     |       |                   |
++--------------------------+     |
+|    |       |             |     |
+| +--+--+ +--+--+          |     |
+| |     | |     |          | <---+
+| |  H  | |  M  |          |  List of donations
+| |     | |     |          |
+| +-----+ +-----+          |
++--------------------------+
+
+When the donate priortiy event is triggered from a thread, the donated priority propagtes up through the tree as long as priorites along the path are less than the donated priority. Explained in depth in the algorithms section.
+
 
 ---- ALGORITHMS ----
 
 >> B3: How do you ensure that the highest priority thread waiting for
 >> a lock, semaphore, or condition variable wakes up first?
 
+When a thread is blocked on a semaphore or condition, it is placed in order inside the list of waiters according to its priority. When a semaphore is released, the front thread in the list of waiters is selected to ensure that the thread of highest priority is selected to be unblocked.
+
 >> B4: Describe the sequence of events when a call to lock_acquire()
 >> causes a priority donation.  How is nested donation handled?
 
+If the lock is free, the thread acquires the lock normally. In case the lock was already acquired by another thread, the data structure explained in the previous section is updated by setting the wait_on_lock of the current thread and adding it to the list of donations to the lock holder thread. Then a chain of priority donations is triggered from the thread in propagtes up through the three described in B2, updating priorities of threads in its path.
+
 >> B5: Describe the sequence of events when lock_release() is called
 >> on a lock that a higher-priority thread is waiting for.
+
+After releasing the lock, the current thread filters donations from donor threads that were waiting on the lock being released. It then determines the new prioirty by querying the filtered list of donations to determine the maximum priority among them and use it till the next lock release and so on.
 
 ---- SYNCHRONIZATION ----
 
@@ -108,10 +150,15 @@ It minimizes the amount of time spent in the timer interrupt handler
 >> how your implementation avoids it.  Can you use a lock to avoid
 >> this race?
 
+The potential race could occur when two (or more) threads attempt to change their prority. To account for donated priorities, when a new priority is set for a thread, the effective priority is recomputed to make sure that the correct priority is assinged. This might result in a thread being assigned a lower priority to cause premeption to a higher priority thread just before it is able to set its priority level.
+This was prevented by disabling interrupt inside thread_set_priority() thus not allowing any premeption to the current theread if it is in the middle of assigning its priority.
+
 ---- RATIONALE ----
 
 >> B7: Why did you choose this design?  In what ways is it superior to
 >> another design you considered?
+
+Because this design maintains effeciency and is easy to implement. It is easy to understand the behaviour of priority donations in the context of trees as described in the data structure section. Although this design uses additional storage for the list of donations, it effeciently determines and sets the priority of the thread using   
 
 			  ADVANCED SCHEDULER
 			  ==================
