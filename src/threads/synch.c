@@ -68,6 +68,10 @@ sema_down (struct semaphore *sema)
   old_level = intr_disable ();
   while (sema->value == 0) 
     {
+      if (!thread_mlfqs)
+	    {
+	      donate_priority();
+	    }
       list_insert_ordered (&sema->waiters, &thread_current ()->elem,
                                            &priority_comparator, NULL);
       thread_block ();
@@ -204,9 +208,18 @@ lock_acquire (struct lock *lock)
   ASSERT (lock != NULL);
   ASSERT (!intr_context ());
   ASSERT (!lock_held_by_current_thread (lock));
-
+  enum intr_level old_level = intr_disable();
+  if (!thread_mlfqs && lock->holder)
+  {
+    thread_current()->waiting_on = lock;
+    list_insert_ordered(&lock->holder->donations
+            ,&thread_current()->donation_elem,
+            &priority_comparator,NULL);
+  }
   sema_down (&lock->semaphore);
+  thread_current()->waiting_on = NULL;
   lock->holder = thread_current ();
+  intr_set_level(old_level);
 }
 
 /* Tries to acquires LOCK and returns true if successful or false
@@ -222,10 +235,14 @@ lock_try_acquire (struct lock *lock)
 
   ASSERT (lock != NULL);
   ASSERT (!lock_held_by_current_thread (lock));
-
+  enum intr_level old_level = intr_disable();
   success = sema_try_down (&lock->semaphore);
   if (success)
+  {
+    thread_current()->waiting_on = NULL;
     lock->holder = thread_current ();
+  }
+  intr_set_level(old_level);
   return success;
 }
 
@@ -239,9 +256,15 @@ lock_release (struct lock *lock)
 {
   ASSERT (lock != NULL);
   ASSERT (lock_held_by_current_thread (lock));
-
+  enum intr_level old_level = intr_disable();
+  if(!thread_mlfqs)
+  {
+    remove_with_lock(lock);
+    refresh_priority();
+  }
   lock->holder = NULL;
   sema_up (&lock->semaphore);
+  intr_set_level(old_level);
 }
 
 /* Returns true if the current thread holds LOCK, false

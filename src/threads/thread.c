@@ -387,9 +387,17 @@ thread_set_priority (int new_priority)
   ASSERT (!intr_context ());
 
   old_level = intr_disable ();
-  // TODO remove and  insert thread according to its new priority value.
-  thread_current ()->priority = new_priority;
-  next_thread();
+  int old_priority = thread_current ()->priority;
+  thread_current ()->initial_priority = new_priority;
+  refresh_priority();
+  if (old_priority < thread_current()->priority)
+  {
+    donate_priority();
+  }
+  if (old_priority > thread_current()->priority)
+  {
+    next_thread();
+  }
   intr_set_level (old_level);
 }
 
@@ -601,6 +609,9 @@ init_thread (struct thread *t, const char *name, int priority)
   t->magic = THREAD_MAGIC;
   t->recent_CPU = 0;
   t->nice = 0;
+  t->initial_priority = priority;
+  t->waiting_on = NULL;
+  list_init(&t->donations);
   enum intr_level old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
   intr_set_level (old_level);
@@ -763,4 +774,63 @@ next_thread()
     {
       thread_yield();
     }
+}
+
+void
+donate_priority ()
+{
+  int depth = 0;
+  struct thread *t = thread_current();
+  struct lock *l = t->waiting_on;
+  while (l && depth < 8)
+    {
+      depth++;
+      // If lock is not being held, return
+      if (!l->holder)
+	{
+	  return;
+	}
+      if (l->holder->priority >= t->priority)
+	{
+	  return;
+	}
+      l->holder->priority = t->priority;
+      t = l->holder;
+      l = t->waiting_on;
+    }
+}
+
+void
+refresh_priority ()
+{
+  struct thread *t = thread_current();
+  t->priority = t->initial_priority;
+  if (list_empty(&t->donations))
+    {
+      return;
+    }
+  struct thread *s = list_entry(list_front(&t->donations),
+				struct thread, donation_elem);
+  if (s->priority > t->priority)
+    {
+      t->priority = s->priority;
+    }
+}
+
+
+void
+remove_with_lock(struct lock *lock)
+{
+  struct list_elem *e = list_begin(&thread_current()->donations);
+  struct list_elem *next;
+  while (e != list_end(&thread_current()->donations))
+  {
+    struct thread *t = list_entry(e, struct thread, donation_elem);
+    next = list_next(e);
+    if (t->waiting_on == lock)
+	  {
+      list_remove(e);
+	  }
+    e = next;
+  }
 }
