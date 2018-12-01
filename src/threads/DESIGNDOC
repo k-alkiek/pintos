@@ -9,7 +9,7 @@
 >> Fill in the names and email addresses of your group members.
 
 mohammed kamal abdelrhman <muhammedkamal98@gmail.com>
-FirstName LastName <email@domain.example>
+rita samir abdo <ritasamir2587@gmail.com>
 FirstName LastName <email@domain.example>
 FirstName LastName <email@domain.example>
 
@@ -30,27 +30,53 @@ FirstName LastName <email@domain.example>
 >> A1: Copy here the declaration of each new or changed `struct' or
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
+In src/threads/thread.h
+struct thread
+	int64_t wakeTime;	// a variable indicates the wakeTime of each sleeping thread.
+In src/devices/timer.c
+	struct list sleep_list;	//a list contains all sleeping threads.
 
 ---- ALGORITHMS ----
 
 >> A2: Briefly describe what happens in a call to timer_sleep(),
 >> including the effects of the timer interrupt handler.
+Instead of busy waiting, The sleeping thread will be blocked after
+inserting it in the sleep_list in order according to its wakeTime
+which equals to the summation of current time (the number of timer
+ticks since the OS booted) and the time that thread should sleep.
+In the timer interrupt handler, The front elements (the threads have
+the smallest wakeTime) will be poped up and compare with current time.
+The front threads will be unblocked until the current time will be 
+bigger than the threads' wakeTime.
 
 >> A3: What steps are taken to minimize the amount of time spent in
 >> the timer interrupt handler?
+The sleeping threads are inserted in the sleep_list in order according 
+to the wakeTime so that the time that includes searching of the thread
+with wakeTime less than the curent time would be saved.
 
 ---- SYNCHRONIZATION ----
 
 >> A4: How are race conditions avoided when multiple threads call
 >> timer_sleep() simultaneously?
+Synchronize the critical section of the shared code of timer_sleep()
+with disabling the interrupt before entering the critical section 
+and setting it back to its original intr_level after finishing the 
+critical section.
 
 >> A5: How are race conditions avoided when a timer interrupt occurs
 >> during a call to timer_sleep()?
+The race conditions are avoided by disabling the interrupt in timer_sleep()
+and setting it back to its original intr_level when leaving the method. 
 
 ---- RATIONALE ----
 
 >> A6: Why did you choose this design?  In what ways is it superior to
 >> another design you considered?
+That design is easy to implement and to understand.
+It improves multiprogramming as another thread can be run on the proceesor 
+instead of busy waiting.
+It minimizes the amount of time spent in the timer interrupt handler
 
 			 PRIORITY SCHEDULING
 			 ===================
