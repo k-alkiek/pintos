@@ -3,8 +3,27 @@
 #include <syscall-nr.h>
 #include "threads/interrupt.h"
 #include "threads/thread.h"
+#include "devices/shutdown.h"
+#include "filesys/filesys.h"
+#include "filesys/file.h"
+
+typedef uint32_t pid_t;
 
 static void syscall_handler (struct intr_frame *);
+
+static void halt_handler (void);
+static void process_exit_handler (int status);
+static pid_t process_execute_handler (const char *cmd_line);
+static int process_wait_handler (pid_t pid);
+static bool create_file_handler (const char *file_name, uint32_t initial_size); 
+static bool remove_file_handler (const char *file_name);
+static int open_file_handler (const char *file_name);
+static int get_file_size_handler (int fd);
+static int read_from_file_handler (int fd, void *buffer, uint32_t size);
+static int write_into_file_handler (int fd, void *buffer, uint32_t size);
+static int seek_handler (int fd, uint32_t position);
+static uint32_t tell_handler (int fd);
+static void close_file_handler (int fd);
 
 void
 syscall_init (void) 
@@ -20,7 +39,9 @@ syscall_handler (struct intr_frame *f UNUSED)
 
   switch (syscall_type)
     {
+    // TODO Parsing arguments and handling memory accessing
     case SYS_HALT:                   /* Halt the operating system. */
+      halt_handler ();
       break;
     case SYS_EXIT:                   /* Terminate this process. */
       break;
@@ -59,4 +80,85 @@ syscall_handler (struct intr_frame *f UNUSED)
 
   // printf ("system call!\n");
   thread_exit ();
+}
+
+static void
+halt_handler (void)
+{
+  shutdown_power_off ();
+}
+
+static void
+process_exit_handler (int status)
+{
+
+}
+
+static pid_t
+process_execute_handler (const char *cmd_line)
+{
+
+}
+
+static int
+process_wait_handler (pid_t pid)
+{
+  // Process wait needs to be implemented
+  return process_wait (pid);
+}
+
+static bool
+create_file_handler (const char *file_name, uint32_t initial_size)
+{
+  // TODO adding synchronization for file system
+  return filesys_create (file_name, initial_size);
+}
+
+static bool
+remove_file_handler (const char *file_name)
+{
+  // TODO adding synchronization for file system
+  return filesys_remove (file_name);
+}
+
+static int
+open_file_handler (const char *file_name)
+{
+  return -1;
+}
+
+static int
+get_file_size_handler (int fd)
+{
+  return -1;
+}
+
+static int
+read_from_file_handler (int fd, void *buffer, uint32_t size)
+{
+  return -1;
+}
+
+static int
+write_into_file_handler (int fd, void *buffer, uint32_t size)
+{
+  return -1;
+}
+
+static int
+seek_handler (int fd, uint32_t position)
+{
+  return -1;
+}
+
+static uint32_t
+tell_handler (int fd)
+{
+  return 0;
+}
+
+static void
+close_file_handler (int fd)
+{
+
 }
