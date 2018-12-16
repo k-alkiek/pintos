@@ -88,7 +88,8 @@ start_process (void *file_name_)
 int
 process_wait (tid_t child_tid UNUSED) 
 {
-  while (true);
+  int x = 1000000000;
+  while (x--);
   return -1;
 }
 
