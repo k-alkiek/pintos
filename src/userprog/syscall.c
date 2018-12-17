@@ -1,11 +1,13 @@
 #include "userprog/syscall.h"
 #include <stdio.h>
 #include <syscall-nr.h>
+#include <kernel/list.h>
 #include "threads/interrupt.h"
 #include "threads/thread.h"
 #include "devices/shutdown.h"
 #include "filesys/filesys.h"
 #include "filesys/file.h"
+
 
 typedef uint32_t pid_t;
 
@@ -91,13 +93,27 @@ halt_handler (void)
 static void
 process_exit_handler (int status)
 {
+  struct thread *cur_thread = thread_current ();
+  sema_up (&cur_thread->parent_wait_sema);
+  struct list_elem *list_itr = list_begin (&cur_thread->file_descriptors);
+  struct list_elem *next_itr;
 
+  while (list_itr != list_end (&cur_thread->file_descriptors))
+  {
+    struct file_descriptor *fd = list_entry (list_itr, struct file_descriptor, file_elem);
+    next_itr = list_next (list_itr);
+    close_file_handler (fd->file_handle);
+    list_itr = next_itr;
+  }
+
+  thread_exit ();
 }
 
 static pid_t
-process_execute_handler (const char *cmd_line)
+process_execute_handler (const char *process_name)
 {
-
+  // process_execute needs to be modified
+  return process_execute (process_name);
 }
 
 static int
@@ -160,5 +176,5 @@ tell_handler (int fd)
 static void
 close_file_handler (int fd)
 {
-
+  
 }
