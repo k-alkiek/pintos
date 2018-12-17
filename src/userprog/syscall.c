@@ -44,11 +44,19 @@ syscall_handler (struct intr_frame *f UNUSED)
       halt_handler ();
       break;
     case SYS_EXIT:                   /* Terminate this process. */
-      break;
+      {
+        int status = *(int *)(esp + 4);
+        process_exit_handler (status);
+        break;
+      }
     case SYS_EXEC:                   /* Start another process. */
       break;
     case SYS_WAIT:                   /* Wait for a child process to die. */
-      break;
+      {
+        int pid = *(int *)(esp + 4);
+        process_wait_handler (pid);
+        break;
+      }
     case SYS_CREATE:                 /* Create a file. */
       break;
     case SYS_REMOVE:                 /* Delete a file. */

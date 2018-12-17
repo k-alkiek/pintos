@@ -378,7 +378,7 @@ thread_foreach (thread_action_func *func, void *aux)
 
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void
-thread_set_priority (int new_priority) 
+thread_set_priority (int new_priority)
 {
   if(thread_mlfqs)
     return;
@@ -837,6 +837,37 @@ remove_with_lock(struct lock *lock)
 	  }
     e = next;
   }
+}
+
+struct thread *
+find_thread (tid_t tid)
+{
+  struct list_elem *e;  
+  for (e = list_begin (&all_list); e != list_end (&all_list); e = list_next (e))
+  {
+    struct thread *t = list_entry(e, struct thread, allelem);
+    if (t->tid == tid)
+    {
+      return t;
+    }
+  }
+  return NULL;
+}
+
+bool is_child (struct thread *t)
+{
+  struct list_elem *e;  
+  struct list *children = &(thread_current ()->children);
+  for (e = list_begin (children); e != list_end (children); e = list_next (e))
+  {
+    struct thread *t1 = list_entry(e, struct thread, child_elem);
+    if (t1->tid == t->tid)
+    {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 void 

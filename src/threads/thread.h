@@ -184,4 +184,7 @@ void refresh_priority ();
 void file_descriptor_init (struct file_descriptor *file_descriptor,
                            struct file *file_pointer, int file_handle);
 
+struct thread *find_thread (int);
+bool is_child (struct thread *);
+
 #endif /* threads/thread.h */

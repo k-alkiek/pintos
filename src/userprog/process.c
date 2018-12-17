@@ -88,8 +88,21 @@ start_process (void *file_name_)
 int
 process_wait (tid_t child_tid UNUSED) 
 {
-  int x = 1000000000;
-  while (x--);
+  // while(true)
+  // {
+  // thread_yield();
+  // }
+
+  // get process from tid
+  // check if child
+  //
+  struct thread *child_thread = find_thread (child_tid);
+  
+  if (is_child(child_thread))
+  {
+    sema_up(&child_thread->parent_wait_sema);
+  }
+
   return -1;
 }
 
