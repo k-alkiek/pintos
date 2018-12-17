@@ -89,7 +89,7 @@ syscall_handler (struct intr_frame *f UNUSED)
     }
 
   // printf ("system call!\n");
-  thread_exit ();
+  // thread_exit ();
 }
 
 static void
@@ -102,7 +102,6 @@ static void
 process_exit_handler (int status)
 {
   struct thread *cur_thread = thread_current ();
-  sema_up (&cur_thread->parent_wait_sema);
   struct list_elem *list_itr = list_begin (&cur_thread->file_descriptors);
   struct list_elem *next_itr;
 
