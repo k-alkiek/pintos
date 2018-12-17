@@ -28,6 +28,8 @@ static bool load (const char *cmdline, void (**eip) (void), void **esp);
 tid_t
 process_execute (const char *file_name) 
 {
+  
+
   char *fn_copy;
   tid_t tid;
 
@@ -42,6 +44,12 @@ process_execute (const char *file_name)
   tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
   if (tid == TID_ERROR)
     palloc_free_page (fn_copy); 
+
+  /* Append new thread to current thread children */
+  struct thread *new_thread = find_thread (tid);
+  list_push_back (&thread_current ()->children, &new_thread->child_elem);
+  new_thread->parent = thread_current ();
+
   return tid;
 }
 
@@ -100,7 +108,7 @@ process_wait (tid_t child_tid UNUSED)
   
   if (is_child(child_thread))
   {
-    sema_up(&child_thread->parent_wait_sema);
+    sema_down(&child_thread->parent_wait_sema);
   }
 
   return -1;
