@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <kernel/list.h>
 #include "synch.h"
+#include "filesys/file.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -113,6 +114,21 @@ struct thread
     struct list donations;
     struct list_elem donation_elem;
     struct lock *waiting_on;
+
+    struct thread *parent;
+    /* Children */
+    struct semaphore parent_wait_sema;
+    struct list children;
+    struct list_elem child_elem;
+
+    struct list file_descriptors;
+  };
+
+struct file_descriptor
+  {
+    struct file *file_pointer;
+    int file_handle;
+    struct list_elem file_elem;
   };
 
 /* If false (default), use round-robin scheduler.
@@ -164,5 +180,8 @@ void next_thread();
 void donate_priority();
 void remove_with_lock(struct lock *lock);
 void refresh_priority ();
+
+void file_descriptor_init (struct file_descriptor *file_descriptor,
+                           struct file *file_pointer, int file_handle);
 
 #endif /* threads/thread.h */

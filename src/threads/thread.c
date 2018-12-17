@@ -614,6 +614,10 @@ init_thread (struct thread *t, const char *name, int priority)
   list_init(&t->donations);
   enum intr_level old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
+
+  sema_init (&t->parent_wait_sema, 0);
+  list_init (&t->children);
+  list_init (&t->file_descriptors);
   intr_set_level (old_level);
 }
 
@@ -833,4 +837,14 @@ remove_with_lock(struct lock *lock)
 	  }
     e = next;
   }
+}
+
+void 
+file_descriptor_init (struct file_descriptor *file_descriptor,
+                           struct file *file_pointer, int file_handle)
+{
+  ASSERT (file_descriptor != NULL);
+
+  file_descriptor->file_pointer = file_pointer;
+  file_descriptor->file_handle = file_handle;
 }
