@@ -20,7 +20,7 @@
 
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
-
+static void push_argc_into_stack(char** parse, int size, void **esp);
 /* Starts a new thread running a user program loaded from
    FILENAME.  The new thread may be scheduled (and may even exit)
    before process_execute() returns.  Returns the new process's
@@ -32,6 +32,7 @@ process_execute (const char *file_name)
 
   char *fn_copy;
   tid_t tid;
+  char *save;
 
   /* Make a copy of FILE_NAME.
      Otherwise there's a race between the caller and load(). */
@@ -39,8 +40,9 @@ process_execute (const char *file_name)
   if (fn_copy == NULL)
     return TID_ERROR;
   strlcpy (fn_copy, file_name, PGSIZE);
-
+  file_name = strtok_r ((char *)file_name," ",&save);
   /* Create a new thread to execute FILE_NAME. */
+  
   tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
   if (tid == TID_ERROR)
     palloc_free_page (fn_copy); 
@@ -59,16 +61,23 @@ static void
 start_process (void *file_name_)
 {
   char *file_name = file_name_;
+  char *argc[50];
   struct intr_frame if_;
   bool success;
-
+  char *token;
+  char *save;
+  int i = 0;
+  
   /* Initialize interrupt frame and load executable. */
   memset (&if_, 0, sizeof if_);
   if_.gs = if_.fs = if_.es = if_.ds = if_.ss = SEL_UDSEG;
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
+  
   success = load (file_name, &if_.eip, &if_.esp);
+  
 
+  //hex_dump(if_.esp, if_.esp, PHYS_BASE - if_.esp, true);
   /* If load failed, quit. */
   palloc_free_page (file_name);
   if (!success) 
@@ -141,6 +150,7 @@ process_exit (void)
       pagedir_activate (NULL);
       pagedir_destroy (pd);
     }
+  printf("%s: exit(%d)\n",cur->name,0);
 }
 
 /* Sets up the CPU for running user code in the current
@@ -228,6 +238,7 @@ static bool load_segment (struct file *file, off_t ofs, uint8_t *upage,
                           uint32_t read_bytes, uint32_t zero_bytes,
                           bool writable);
 
+
 /* Loads an ELF executable from FILE_NAME into the current thread.
    Stores the executable's entry point into *EIP
    and its initial stack pointer into *ESP.
@@ -248,8 +259,17 @@ load (const char *file_name, void (**eip) (void), void **esp)
     goto done;
   process_activate ();
 
+  char *token, *save_ptr;
+  char *argv[25];
+  int argc = 0;
+  for(token = strtok_r((char *)file_name, " ", &save_ptr); token != NULL;
+      token = strtok_r(NULL, " ", &save_ptr))
+  {
+    argv[argc] = token;
+    argc++;
+  }
   /* Open executable file. */
-  file = filesys_open (file_name);
+  file = filesys_open (argv[0]);
   if (file == NULL) 
     {
       printf ("load: %s: open failed\n", file_name);
@@ -328,15 +348,16 @@ load (const char *file_name, void (**eip) (void), void **esp)
         }
     }
 
+  
   /* Set up stack. */
   if (!setup_stack (esp))
     goto done;
-
+  push_argc_into_stack(argv,argc,esp);
   /* Start address. */
   *eip = (void (*) (void)) ehdr.e_entry;
 
   success = true;
-
+  
  done:
   /* We arrive here whether the load is successful or not. */
   file_close (file);
@@ -454,7 +475,7 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
 /* Create a minimal stack by mapping a zeroed page at the top of
    user virtual memory. */
 static bool
-setup_stack (void **esp) 
+setup_stack (void **esp)
 {
   uint8_t *kpage;
   bool success = false;
@@ -463,14 +484,13 @@ setup_stack (void **esp)
   if (kpage != NULL) 
     {
       success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
-      if (success)
-        *esp = PHYS_BASE - 12;
-      else
+      if (success) {
+        *esp = PHYS_BASE;
+      }else
         palloc_free_page (kpage);
     }
   return success;
 }
-
 /* Adds a mapping from user virtual address UPAGE to kernel
    virtual address KPAGE to the page table.
    If WRITABLE is true, the user process may modify the page;
@@ -489,4 +509,38 @@ install_page (void *upage, void *kpage, bool writable)
      address, then map our page there. */
   return (pagedir_get_page (t->pagedir, upage) == NULL
           && pagedir_set_page (t->pagedir, upage, kpage, writable));
+}
+
+static void
+push_argc_into_stack(char** parse, int size, void **esp){
+  int i = 0;
+  int len = 0;
+  int args_address[size];
+  
+  for( i = size - 1; i >= 0; i--)
+  {
+    len = strlen(parse[i]) + 1;
+    *esp -= len;
+    memcpy(*esp,parse[i],len);  
+    args_address[i] = (int)* esp;
+  }
+  
+  
+  *esp = (void*)((unsigned int)(*esp) & 0xfffffffc);
+  
+  *esp -= 4;
+  
+  for (i = size - 1; i >= 0; i--) {
+    *esp -= 4;
+    *(int*)*esp = args_address[i];
+  }
+
+  *esp -= 4;
+  *(int*)*esp = (int)*esp + 4;
+  
+  *esp -= 4;
+  *(int*)*esp = size;
+  *esp-=4;
+  *(int*)*esp = 0;
+
 }
