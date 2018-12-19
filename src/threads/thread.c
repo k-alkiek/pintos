@@ -227,6 +227,7 @@ thread_create (const char *name, int priority,
   sf->eip = switch_entry;
   sf->ebp = 0;
 
+  t->fd_counter = 2;
   intr_set_level (old_level);
 
   /* Add to run queue. */
@@ -879,4 +880,20 @@ file_descriptor_init (struct file_descriptor *file_descriptor,
 
   file_descriptor->file_pointer = file_pointer;
   file_descriptor->file_handle = file_handle;
+}
+
+struct file *get_file_pointer (int file_handle) 
+{
+  struct list_elem *e = list_begin(&thread_current ()->file_descriptors);
+  struct list_elem *next;
+  while (e != list_end(&thread_current ()->file_descriptors))
+  {
+    struct file_descriptor *fd = list_entry(e, struct file_descriptor, file_elem);
+    next = list_next(e);
+    if (fd->file_handle == file_handle)
+    {
+      return fd->file_pointer;
+    }
+    e = next;
+  }
 }

@@ -104,6 +104,9 @@ process_wait (tid_t child_tid UNUSED)
   // get process from tid
   // check if child
   //
+
+  //TODO:
+  //      Avoid additional waiting
   struct thread *child_thread = find_thread (child_tid);
   
   if (is_child(child_thread))
@@ -111,7 +114,7 @@ process_wait (tid_t child_tid UNUSED)
     sema_down(&child_thread->parent_wait_sema);
   }
 
-  return -1;
+  return child_thread->status;
 }
 
 /* Free the current process's resources. */

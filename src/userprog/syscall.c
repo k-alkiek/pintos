@@ -1,21 +1,29 @@
 #include "userprog/syscall.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include <syscall-nr.h>
+
+#include "userprog/process.h"
 #include <kernel/list.h>
 #include "threads/interrupt.h"
 #include "threads/thread.h"
+#include "threads/vaddr.h"
+#include "threads/synch.h"
 #include "devices/shutdown.h"
 #include "filesys/filesys.h"
 #include "filesys/file.h"
-
+//#include "threads/malloc.h"
 
 typedef uint32_t pid_t;
+#define EXIT_ERROR -1
+
+struct lock file_system_lock;
 
 static void syscall_handler (struct intr_frame *);
 
 static void halt_handler (void);
 static void process_exit_handler (int status);
-static pid_t process_execute_handler (const char *cmd_line);
+static pid_t process_execute_handler (const char *process_name);
 static int process_wait_handler (pid_t pid);
 static bool create_file_handler (const char *file_name, uint32_t initial_size); 
 static bool remove_file_handler (const char *file_name);
@@ -27,10 +35,14 @@ static int seek_handler (int fd, uint32_t position);
 static uint32_t tell_handler (int fd);
 static void close_file_handler (int fd);
 
+bool check_for_valid_address (void *pointer);
+
 void
 syscall_init (void) 
 {
   intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
+
+  lock_init(&file_system_lock);
 }
 
 static void
@@ -42,54 +54,145 @@ syscall_handler (struct intr_frame *f UNUSED)
   switch (syscall_type)
     {
     // TODO Parsing arguments and handling memory accessing
-    case SYS_HALT:                   /* Halt the operating system. */
-      halt_handler ();
-      break;
+    case SYS_HALT:
+      {                   /* Halt the operating system. */
+        halt_handler ();
+        break;
+      }
     case SYS_EXIT:                   /* Terminate this process. */
       {
-        int status = *(int *)(esp + 4);
-        process_exit_handler (status);
+        if (!check_for_valid_address (esp + 4))
+        {
+          process_exit_handler (EXIT_ERROR);
+        }
+        else 
+        {
+          int status = *(int *)(esp + 4);
+          process_exit_handler (status);
+        }
         break;
       }
     case SYS_EXEC:                   /* Start another process. */
-      break;
+      {
+        if (!check_for_valid_address (esp + 4))
+        {
+          process_exit_handler (EXIT_ERROR);
+        }
+        else 
+        {
+          char *prog_name = *(int *) (esp + 4);
+          f->eax = process_execute_handler (prog_name);
+        }
+        break;
+      }
     case SYS_WAIT:                   /* Wait for a child process to die. */
       {
-        int pid = *(int *)(esp + 4);
-        process_wait_handler (pid);
+        if (!check_for_valid_address (esp + 4))
+        {
+          process_exit_handler (EXIT_ERROR);
+        }
+        else 
+        {
+          int pid = *(int *)(esp + 4);
+          f->eax = process_wait_handler (pid);
+        }
         break;
       }
     case SYS_CREATE:                 /* Create a file. */
-      break;
-    case SYS_REMOVE:                 /* Delete a file. */
-      break;
-    case SYS_OPEN:                   /* Open a file. */
-      break;
-    case SYS_FILESIZE:               /* Obtain a file's size. */
-      break;
-    case SYS_READ:                   /* Read from a file. */
-      break;
-    case SYS_WRITE:                  /* Write to a file. */
-      ;
-      int fd = *(int *)(esp + 4);
-      char* buffer = *(int *)(esp + 8);
-      int size = *(int *)(esp + 12);
-
-      if (fd == 1)
       {
-        putbuf(buffer, size);
-      }  
-      break;
+        if (!check_for_valid_address (esp + 4) || 
+                    !check_for_valid_address (esp + 8))
+        {
+          process_exit_handler (EXIT_ERROR);
+        }
+        else 
+        {
+          char *file_name = *(int *)(esp + 4);
+          uint32_t initial_size = *(uint32_t *)(esp + 8);
+          f->eax = create_file_handler (file_name, initial_size);
+        }
+        break;
+      }
+    case SYS_REMOVE:                 /* Delete a file. */
+      {
+        if (!check_for_valid_address (esp + 4))
+        {
+          process_exit_handler (EXIT_ERROR);
+        }
+        else 
+        {
+          char *file_name = *(int *)(esp + 4);
+          f->eax = remove_file_handler (file_name);
+        }
+        break;
+      }
+    case SYS_OPEN:                   /* Open a file. */
+      {
+        if (!check_for_valid_address (esp + 4))
+        {
+          process_exit_handler (EXIT_ERROR);
+        }
+        else 
+        {
+          char *file_name = *(int *)(esp + 4);
+          f->eax = open_file_handler (file_name);
+        }
+        break;
+      }
+    case SYS_FILESIZE:               /* Obtain a file's size. */
+      {
+        if (!check_for_valid_address (esp + 4))
+        {
+          process_exit_handler (EXIT_ERROR);
+        }
+        else 
+        {
+          int file_handle = *(int *)(esp + 4);
+          f->eax = get_file_size_handler (file_handle);
+        }
+        break;
+      }
+    case SYS_READ:                   /* Read from a file. */
+      {
+        break;
+      }
+    case SYS_WRITE:                  /* Write to a file. */
+      {
+        int fd = *(int *)(esp + 4);
+        char* buffer = *(int *)(esp + 8);
+        int size = *(int *)(esp + 12);
+
+        if (fd == 1)
+        {
+          putbuf(buffer, size);
+        } 
+        break;
+      } 
     case SYS_SEEK:                   /* Change position in a file. */
-      break;
+      {
+       break;
+      }
     case SYS_TELL:                   /* Report current position in a file. */
-      break;
+      {
+        break;
+      }
     case SYS_CLOSE:                  /* Close a file. */
-      break;
+      {
+        break;
+      }
     }
 
   // printf ("system call!\n");
   // thread_exit ();
+}
+
+bool check_for_valid_address (void *pointer) {
+  if (!is_user_vaddr (pointer))
+    return false;
+  void *addr = pagedir_get_page (thread_current (), pointer);
+  if (!addr)
+    return false;
+  return true;
 }
 
 static void
@@ -101,16 +204,13 @@ halt_handler (void)
 static void
 process_exit_handler (int status)
 {
-  struct thread *cur_thread = thread_current ();
-  struct list_elem *list_itr = list_begin (&cur_thread->file_descriptors);
-  struct list_elem *next_itr;
-
-  while (list_itr != list_end (&cur_thread->file_descriptors))
+  /* Exit status */
+  /* Close all files used by the current thread */
+  while (!list_empty (&thread_current ()->file_descriptors))
   {
+    struct list_elem *list_itr = list_pop_front (&thread_current ()->file_descriptors);
     struct file_descriptor *fd = list_entry (list_itr, struct file_descriptor, file_elem);
-    next_itr = list_next (list_itr);
     close_file_handler (fd->file_handle);
-    list_itr = next_itr;
   }
 
   thread_exit ();
@@ -119,41 +219,64 @@ process_exit_handler (int status)
 static pid_t
 process_execute_handler (const char *process_name)
 {
-  // process_execute needs to be modified
+  // Process name must be added to thread struct
   return process_execute (process_name);
 }
 
 static int
 process_wait_handler (pid_t pid)
 {
-  // Process wait needs to be implemented
   return process_wait (pid);
 }
 
 static bool
 create_file_handler (const char *file_name, uint32_t initial_size)
 {
-  // TODO adding synchronization for file system
-  return filesys_create (file_name, initial_size);
+  lock_acquire (&file_system_lock);
+  bool status = filesys_create (file_name, initial_size);
+  lock_release (&file_system_lock);
+  return status;
 }
 
 static bool
 remove_file_handler (const char *file_name)
 {
-  // TODO adding synchronization for file system
-  return filesys_remove (file_name);
+  lock_acquire (&file_system_lock);
+  bool status = filesys_remove (file_name);
+  lock_release (&file_system_lock);
+  return status;
 }
 
 static int
 open_file_handler (const char *file_name)
 {
-  return -1;
+  lock_acquire (&file_system_lock);
+  struct file *file = filesys_open (file_name);
+  int status = -1;
+  if (file)
+  {
+    struct file_descriptor *fd = malloc (sizeof (struct file_descriptor));
+    file_descriptor_init (fd, file, thread_current ()->fd_counter);
+    list_push_back (&thread_current ()->file_descriptors, &fd->file_elem);
+    thread_current ()->fd_counter++;
+    status = fd->file_handle;
+  }
+  lock_release (&file_system_lock);
+  return status;
 }
 
 static int
 get_file_size_handler (int fd)
 {
-  return -1;
+  lock_acquire (&file_system_lock);
+  struct file *file_pointer = get_file_pointer (fd);
+  int size = 0;
+  if (file_pointer)
+  {
+    size = file_length (file_pointer);
+  }
+  lock_release (&file_system_lock);
+  return size;
 }
 
 static int

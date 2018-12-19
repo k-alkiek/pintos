@@ -122,6 +122,7 @@ struct thread
     struct list_elem child_elem;
 
     struct list file_descriptors;
+    uint32_t fd_counter; /*  */
   };
 
 struct file_descriptor
@@ -186,5 +187,6 @@ void file_descriptor_init (struct file_descriptor *file_descriptor,
 
 struct thread *find_thread (int);
 bool is_child (struct thread *);
+struct file *get_file_pointer (int); 
 
 #endif /* threads/thread.h */
