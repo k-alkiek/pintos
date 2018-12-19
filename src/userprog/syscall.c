@@ -12,7 +12,6 @@
 #include "devices/shutdown.h"
 #include "filesys/filesys.h"
 #include "filesys/file.h"
-//#include "threads/malloc.h"
 
 typedef uint32_t pid_t;
 #define EXIT_ERROR -1
@@ -31,7 +30,7 @@ static int open_file_handler (const char *file_name);
 static int get_file_size_handler (int fd);
 static int read_from_file_handler (int fd, void *buffer, uint32_t size);
 static int write_into_file_handler (int fd, void *buffer, uint32_t size);
-static int seek_handler (int fd, uint32_t position);
+static void seek_handler (int fd, uint32_t position);
 static uint32_t tell_handler (int fd);
 static void close_file_handler (int fd);
 
@@ -170,14 +169,43 @@ syscall_handler (struct intr_frame *f UNUSED)
       } 
     case SYS_SEEK:                   /* Change position in a file. */
       {
-       break;
+       if (!check_for_valid_address (esp + 4) || 
+                    !check_for_valid_address (esp + 8))
+        {
+          process_exit_handler (EXIT_ERROR);
+        }
+        else 
+        {
+          int file_handle = *(int *)(esp + 4);
+          uint32_t position = *(uint32_t *)(esp + 8);
+          seek_handler (file_handle, position);
+        }
+        break;
       }
     case SYS_TELL:                   /* Report current position in a file. */
       {
+        if (!check_for_valid_address (esp + 4))
+        {
+          process_exit_handler (EXIT_ERROR);
+        }
+        else 
+        {
+          int file_handle = *(int *)(esp + 4);
+          f->eax = tell_handler (file_handle);
+        }
         break;
       }
     case SYS_CLOSE:                  /* Close a file. */
       {
+        if (!check_for_valid_address (esp + 4))
+        {
+          process_exit_handler (EXIT_ERROR);
+        }
+        else 
+        {
+          int file_handle = *(int *)(esp + 4);
+          close_file_handler (file_handle);
+        }
         break;
       }
     }
@@ -269,7 +297,7 @@ static int
 get_file_size_handler (int fd)
 {
   lock_acquire (&file_system_lock);
-  struct file *file_pointer = get_file_pointer (fd);
+  struct file *file_pointer = get_file_descriptor (fd)->file_pointer;
   int size = 0;
   if (file_pointer)
   {
@@ -291,20 +319,42 @@ write_into_file_handler (int fd, void *buffer, uint32_t size)
   return -1;
 }
 
-static int
+static void
 seek_handler (int fd, uint32_t position)
 {
-  return -1;
+  lock_acquire (&file_system_lock);
+  struct file *file_pointer = get_file_descriptor (fd)->file_pointer;
+  if (file_pointer)
+  {
+    file_seek (file_pointer, position);
+  }
+  lock_release (&file_system_lock);
 }
 
 static uint32_t
 tell_handler (int fd)
 {
-  return 0;
+  lock_acquire (&file_system_lock);
+  struct file *file_pointer = get_file_descriptor (fd)->file_pointer;
+  int next_byte_to_read = 0;
+  if (file_pointer)
+  {
+    next_byte_to_read = file_tell (file_pointer);
+  }
+  lock_release (&file_system_lock);
+  return next_byte_to_read;
 }
 
 static void
 close_file_handler (int fd)
 {
-  
+  lock_acquire (&file_system_lock);
+  struct file_descriptor *file_desc = get_file_descriptor (fd);
+  if (file_desc)
+  {
+    file_close (file_desc->file_pointer);
+    list_remove (&file_desc->file_elem);
+    free (file_desc);
+  }
+  lock_release (&file_system_lock);
 }

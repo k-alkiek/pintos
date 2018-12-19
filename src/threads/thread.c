@@ -882,7 +882,7 @@ file_descriptor_init (struct file_descriptor *file_descriptor,
   file_descriptor->file_handle = file_handle;
 }
 
-struct file *get_file_pointer (int file_handle) 
+struct file_descriptor *get_file_descriptor (int file_handle) 
 {
   struct list_elem *e = list_begin(&thread_current ()->file_descriptors);
   struct list_elem *next;
@@ -892,7 +892,7 @@ struct file *get_file_pointer (int file_handle)
     next = list_next(e);
     if (fd->file_handle == file_handle)
     {
-      return fd->file_pointer;
+      return fd;
     }
     e = next;
   }

@@ -187,6 +187,6 @@ void file_descriptor_init (struct file_descriptor *file_descriptor,
 
 struct thread *find_thread (int);
 bool is_child (struct thread *);
-struct file *get_file_pointer (int); 
+struct file_descriptor *get_file_descriptor (int);
 
 #endif /* threads/thread.h */
