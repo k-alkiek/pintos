@@ -62,11 +62,12 @@ syscall_handler (struct intr_frame *f UNUSED)
       {
         if (!check_for_valid_address (esp + 4))
         {
+          
           process_exit_handler (EXIT_ERROR);
         }
         else 
         {
-          int status = *(int *)(esp + 4); status = *((int*)f->esp+1);
+          int status = *(int *)(esp + 4); status = *((int*)f->esp+1);          
           process_exit_handler (status);
         }
         break;
@@ -217,9 +218,13 @@ syscall_handler (struct intr_frame *f UNUSED)
 bool check_for_valid_address (void *pointer) {
   if (!is_user_vaddr (pointer)|| pointer < USER_VADDR_BOTTOM)
     return false;
-  void *addr = pagedir_get_page (thread_current (), pointer);
+  
+  void *addr = pagedir_get_page (thread_current ()->pagedir, pointer);
+  
   if (!addr)
+  { 
     return false;
+  }
   return true;
 }
 
@@ -240,7 +245,7 @@ process_exit_handler (int status)
     struct file_descriptor *fd = list_entry (list_itr, struct file_descriptor, file_elem);
     close_file_handler (fd->file_handle);
   }
-printf ("%s: exit(%d)\n", thread_current()->name, status);
+  printf ("%s: exit(%d)\n", thread_current()->name, status);
   thread_exit ();
 }
 
@@ -357,4 +362,42 @@ close_file_handler (int fd)
     free (file_desc);
   }
   lock_release (&file_system_lock);
+}
+
+/* Reads a byte at user virtual address UADDR.
+   UADDR must be below PHYS_BASE.
+   Returns the byte value if successful, -1 if a segfault
+   occurred. */
+static int
+get_user (const uint8_t *uaddr)
+{
+  if (! ((void*)uaddr < PHYS_BASE))
+    return -1;
+
+  int result;
+  asm ("movl $1f, %0; movzbl %1, %0; 1:"
+       : "=&a" (result) : "m" (*uaddr));
+  return result;
+}
+ 
+/* Writes BYTE to user address UDST.
+   UDST must be below PHYS_BASE.
+   Returns true if successful, false if a segfault occurred. */
+static bool
+put_user (uint8_t *udst, uint8_t byte)
+{
+  int error_code;
+  asm ("movl $1f, %0; movb %b2, %1; 1:"
+       : "=&a" (error_code), "=m" (*udst) : "q" (byte));
+  return error_code != -1;
+}
+
+int
+check_status(void* esp,size_t size){
+  size_t i = 0;
+  int value = 0;
+  void *status;
+  for(i = 0;i < size;i++){
+    *(char*)(status+i) = get_user(esp+i) & 0xff;
+  }
 }
