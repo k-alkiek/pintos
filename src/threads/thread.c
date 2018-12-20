@@ -228,6 +228,14 @@ thread_create (const char *name, int priority,
   sf->ebp = 0;
 
   t->fd_counter = 2;
+
+  struct child_thread *child_data = malloc (sizeof (struct child_thread));
+  child_thread_init (child_data, t);
+  t->child_data = child_data;
+  child_data->parent = thread_current ();
+  list_push_back (&thread_current ()->children, &t->child_data->child_elem);
+
+
   intr_set_level (old_level);
 
   /* Add to run queue. */
@@ -337,9 +345,9 @@ thread_exit (void)
      when it calls thread_schedule_tail(). */
   intr_disable ();
   list_remove (&thread_current ()->allelem);
-  if (&thread_current ()->child_elem)
+  if (&thread_current ()->child_data->child_elem)
   {
-    list_remove (&thread_current ()->child_elem);
+    list_remove (&thread_current ()->child_data->child_elem);
   }
   thread_current ()->status = THREAD_DYING;
   schedule ();
@@ -620,7 +628,11 @@ init_thread (struct thread *t, const char *name, int priority)
   enum intr_level old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
 
-  sema_init (&t->parent_wait_sema, 0);
+  // sema_init (&t->parent_wait_sema, 0);
+  // struct child_thread *child_data = malloc (sizeof (struct child_thread));
+  // t->child_data = child_data;
+  // child_thread_init (t->child_data, t);
+  
   list_init (&t->children);
   list_init (&t->file_descriptors);
   intr_set_level (old_level);
@@ -845,15 +857,16 @@ remove_with_lock(struct lock *lock)
 }
 
 struct thread *
-find_thread (tid_t tid)
+find_child_thread (tid_t tid)
 {
-  struct list_elem *e;  
-  for (e = list_begin (&all_list); e != list_end (&all_list); e = list_next (e))
+  struct list_elem *e;
+  struct list *children = &thread_current ()->children;
+  for (e = list_begin (children); e != list_end (children); e = list_next (e))
   {
-    struct thread *t = list_entry(e, struct thread, allelem);
-    if (t->tid == tid)
+    struct child_thread *cht = list_entry(e, struct child_thread, child_elem);
+    if (cht->child_tid == tid)
     {
-      return t;
+      return cht;
     }
   }
   return NULL;
@@ -865,7 +878,7 @@ bool is_child (struct thread *t)
   struct list *children = &(thread_current ()->children);
   for (e = list_begin (children); e != list_end (children); e = list_next (e))
   {
-    struct thread *t1 = list_entry(e, struct thread, child_elem);
+    struct thread *t1 = list_entry(e, struct child_thread, child_elem)->child;
     if (t1->tid == t->tid)
     {
       return true;
@@ -873,6 +886,15 @@ bool is_child (struct thread *t)
   }
 
   return false;
+}
+
+void
+child_thread_init (struct child_thread *cht, struct thread *t)
+{
+  cht->child = t;
+  cht->child_tid = t->tid;
+  cht->exit_status = -1;
+  sema_init (&cht->parent_wait_sema, 0);
 }
 
 void 

@@ -251,6 +251,7 @@ static void
 process_exit_handler (int status)
 {
   /* Exit status */
+  thread_current ()->child_data->exit_status = status;
   /* Close all files used by the current thread */
   while (!list_empty (&thread_current ()->file_descriptors))
   {
