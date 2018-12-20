@@ -28,8 +28,8 @@ static bool create_file_handler (const char *file_name, uint32_t initial_size);
 static bool remove_file_handler (const char *file_name);
 static int open_file_handler (const char *file_name);
 static int get_file_size_handler (int fd);
-static int read_from_file_handler (int fd, void *buffer, uint32_t size);
-static int write_into_file_handler (int fd, void *buffer, uint32_t size);
+static int read_from_file_handler (int fd, char *buffer, uint32_t size);
+static int write_into_file_handler (int fd, char *buffer, int size);
 static void seek_handler (int fd, uint32_t position);
 static uint32_t tell_handler (int fd);
 static void close_file_handler (int fd);
@@ -162,8 +162,8 @@ syscall_handler (struct intr_frame *f UNUSED)
         else 
         {
           int fd = *(int *)(esp + 4);
-          void *buffer = *(int *)(esp + 8);
-          uint32_t size = *(uint32_t *)(esp + 12);
+          char *buffer = *(int *)(esp + 8);
+          uint32_t size = *(int *)(esp + 12);
           f->eax = read_from_file_handler (fd, buffer, size);
         }
         break;
@@ -326,50 +326,49 @@ get_file_size_handler (int fd)
 }
 
 static int
-read_from_file_handler (int fd, void *buffer, uint32_t size)
+read_from_file_handler (int fd, char *buffer, uint32_t size)
 {
-  lock_acquire (&file_system_lock);
   int status = -1;
   if (fd != 0)
   {
+    lock_acquire (&file_system_lock);
     struct file *file_pointer = get_file_descriptor (fd)->file_pointer;
     if (file_pointer != NULL) 
     {
       status = file_read (file_pointer, buffer, size);
     }
+    lock_release (&file_system_lock);
   }
   else
   {
-    char *real_buffer = *(char *)(buffer);
     for (uint32_t i = 0; i < size; i++)
     {
-      real_buffer[i] = input_getc ();
+      buffer[i] = input_getc ();
     }
     status = size;
   }
-  lock_release (&file_system_lock);
   return status;
 }
 
 static int
-write_into_file_handler (int fd, void *buffer, uint32_t size)
+write_into_file_handler (int fd, char *buffer, int size)
 {
-  lock_acquire (&file_system_lock);
   int status = -1;
-  if (fd != 1)
+  if (fd == 1)
   {
+    putbuf(buffer, size);
+    status = size;
+  }
+  else
+  {
+    lock_acquire (&file_system_lock);
     struct file *file_pointer = get_file_descriptor (fd)->file_pointer;
     if (file_pointer != NULL) 
     {
       status = file_write (file_pointer, buffer, size);
     }
+    lock_release (&file_system_lock);
   }
-  else
-  {
-    putbuf(buffer, size);
-    status = size;
-  }
-  lock_release (&file_system_lock);
   return status;
 }
 
@@ -404,7 +403,7 @@ close_file_handler (int fd)
 {
   lock_acquire (&file_system_lock);
   struct file_descriptor *file_desc = get_file_descriptor (fd);
-  if (file_desc)
+  if (file_desc != NULL)
   {
     file_close (file_desc->file_pointer);
     list_remove (&file_desc->file_elem);
