@@ -153,18 +153,36 @@ syscall_handler (struct intr_frame *f UNUSED)
       }
     case SYS_READ:                   /* Read from a file. */
       {
+        if (!check_for_valid_address (esp + 4) || 
+                    !check_for_valid_address (esp + 8) ||
+                    !check_for_valid_address (esp + 12))
+        {
+          process_exit_handler (EXIT_ERROR);
+        }
+        else 
+        {
+          int fd = *(int *)(esp + 4);
+          void *buffer = *(int *)(esp + 8);
+          uint32_t size = *(uint32_t *)(esp + 12);
+          f->eax = read_from_file_handler (fd, buffer, size);
+        }
         break;
       }
     case SYS_WRITE:                  /* Write to a file. */
       {
-        int fd = *(int *)(esp + 4);
-        char* buffer = *(int *)(esp + 8);
-        int size = *(int *)(esp + 12);
-
-        if (fd == 1)
+        if (!check_for_valid_address (esp + 4) || 
+                    !check_for_valid_address (esp + 8) ||
+                    !check_for_valid_address (esp + 12))
         {
-          putbuf(buffer, size);
-        } 
+          process_exit_handler (EXIT_ERROR);
+        }
+        else 
+        {
+          int fd = *(int *)(esp + 4);
+          char* buffer = *(int *)(esp + 8);
+          int size = *(int *)(esp + 12);
+          f->eax = write_into_file_handler (fd, buffer, size);
+        }
         break;
       } 
     case SYS_SEEK:                   /* Change position in a file. */
@@ -281,7 +299,7 @@ open_file_handler (const char *file_name)
   lock_acquire (&file_system_lock);
   struct file *file = filesys_open (file_name);
   int status = -1;
-  if (file)
+  if (file != NULL)
   {
     struct file_descriptor *fd = malloc (sizeof (struct file_descriptor));
     file_descriptor_init (fd, file, thread_current ()->fd_counter);
@@ -299,7 +317,7 @@ get_file_size_handler (int fd)
   lock_acquire (&file_system_lock);
   struct file *file_pointer = get_file_descriptor (fd)->file_pointer;
   int size = 0;
-  if (file_pointer)
+  if (file_pointer != NULL)
   {
     size = file_length (file_pointer);
   }
@@ -310,13 +328,49 @@ get_file_size_handler (int fd)
 static int
 read_from_file_handler (int fd, void *buffer, uint32_t size)
 {
-  return -1;
+  lock_acquire (&file_system_lock);
+  int status = -1;
+  if (fd != 0)
+  {
+    struct file *file_pointer = get_file_descriptor (fd)->file_pointer;
+    if (file_pointer != NULL) 
+    {
+      status = file_read (file_pointer, buffer, size);
+    }
+  }
+  else
+  {
+    char *real_buffer = *(char *)(buffer);
+    for (uint32_t i = 0; i < size; i++)
+    {
+      real_buffer[i] = input_getc ();
+    }
+    status = size;
+  }
+  lock_release (&file_system_lock);
+  return status;
 }
 
 static int
 write_into_file_handler (int fd, void *buffer, uint32_t size)
 {
-  return -1;
+  lock_acquire (&file_system_lock);
+  int status = -1;
+  if (fd != 1)
+  {
+    struct file *file_pointer = get_file_descriptor (fd)->file_pointer;
+    if (file_pointer != NULL) 
+    {
+      status = file_write (file_pointer, buffer, size);
+    }
+  }
+  else
+  {
+    putbuf(buffer, size);
+    status = size;
+  }
+  lock_release (&file_system_lock);
+  return status;
 }
 
 static void
