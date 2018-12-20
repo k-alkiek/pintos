@@ -28,8 +28,8 @@ static bool create_file_handler (const char *file_name, uint32_t initial_size);
 static bool remove_file_handler (const char *file_name);
 static int open_file_handler (const char *file_name);
 static int get_file_size_handler (int fd);
-static int read_from_file_handler (int fd, void *buffer, uint32_t size);
-static int write_into_file_handler (int fd, void *buffer, uint32_t size);
+static int read_from_file_handler (int fd, char *buffer, uint32_t size);
+static int write_into_file_handler (int fd, char *buffer, int size);
 static void seek_handler (int fd, uint32_t position);
 static uint32_t tell_handler (int fd);
 static void close_file_handler (int fd);
@@ -154,18 +154,36 @@ syscall_handler (struct intr_frame *f UNUSED)
       }
     case SYS_READ:                   /* Read from a file. */
       {
+        if (!check_for_valid_address (esp + 4) || 
+                    !check_for_valid_address (esp + 8) ||
+                    !check_for_valid_address (esp + 12))
+        {
+          process_exit_handler (EXIT_ERROR);
+        }
+        else 
+        {
+          int fd = *(int *)(esp + 4);
+          char *buffer = *(int *)(esp + 8);
+          uint32_t size = *(int *)(esp + 12);
+          f->eax = read_from_file_handler (fd, buffer, size);
+        }
         break;
       }
     case SYS_WRITE:                  /* Write to a file. */
       {
-        int fd = *(int *)(esp + 4);
-        char* buffer = *(int *)(esp + 8);
-        int size = *(int *)(esp + 12);
-
-        if (fd == 1)
+        if (!check_for_valid_address (esp + 4) || 
+                    !check_for_valid_address (esp + 8) ||
+                    !check_for_valid_address (esp + 12))
         {
-          putbuf(buffer, size);
-        } 
+          process_exit_handler (EXIT_ERROR);
+        }
+        else 
+        {
+          int fd = *(int *)(esp + 4);
+          char* buffer = *(int *)(esp + 8);
+          int size = *(int *)(esp + 12);
+          f->eax = write_into_file_handler (fd, buffer, size);
+        }
         break;
       } 
     case SYS_SEEK:                   /* Change position in a file. */
@@ -286,7 +304,7 @@ open_file_handler (const char *file_name)
   lock_acquire (&file_system_lock);
   struct file *file = filesys_open (file_name);
   int status = -1;
-  if (file)
+  if (file != NULL)
   {
     struct file_descriptor *fd = malloc (sizeof (struct file_descriptor));
     file_descriptor_init (fd, file, thread_current ()->fd_counter);
@@ -304,7 +322,7 @@ get_file_size_handler (int fd)
   lock_acquire (&file_system_lock);
   struct file *file_pointer = get_file_descriptor (fd)->file_pointer;
   int size = 0;
-  if (file_pointer)
+  if (file_pointer != NULL)
   {
     size = file_length (file_pointer);
   }
@@ -313,15 +331,50 @@ get_file_size_handler (int fd)
 }
 
 static int
-read_from_file_handler (int fd, void *buffer, uint32_t size)
+read_from_file_handler (int fd, char *buffer, uint32_t size)
 {
-  return -1;
+  int status = -1;
+  if (fd != 0)
+  {
+    lock_acquire (&file_system_lock);
+    struct file *file_pointer = get_file_descriptor (fd)->file_pointer;
+    if (file_pointer != NULL) 
+    {
+      status = file_read (file_pointer, buffer, size);
+    }
+    lock_release (&file_system_lock);
+  }
+  else
+  {
+    for (uint32_t i = 0; i < size; i++)
+    {
+      buffer[i] = input_getc ();
+    }
+    status = size;
+  }
+  return status;
 }
 
 static int
-write_into_file_handler (int fd, void *buffer, uint32_t size)
+write_into_file_handler (int fd, char *buffer, int size)
 {
-  return -1;
+  int status = -1;
+  if (fd == 1)
+  {
+    putbuf(buffer, size);
+    status = size;
+  }
+  else
+  {
+    lock_acquire (&file_system_lock);
+    struct file *file_pointer = get_file_descriptor (fd)->file_pointer;
+    if (file_pointer != NULL) 
+    {
+      status = file_write (file_pointer, buffer, size);
+    }
+    lock_release (&file_system_lock);
+  }
+  return status;
 }
 
 static void
@@ -355,7 +408,7 @@ close_file_handler (int fd)
 {
   lock_acquire (&file_system_lock);
   struct file_descriptor *file_desc = get_file_descriptor (fd);
-  if (file_desc)
+  if (file_desc != NULL)
   {
     file_close (file_desc->file_pointer);
     list_remove (&file_desc->file_elem);
