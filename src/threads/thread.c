@@ -227,6 +227,15 @@ thread_create (const char *name, int priority,
   sf->eip = switch_entry;
   sf->ebp = 0;
 
+  t->fd_counter = 2;
+
+  struct child_thread *child_data = malloc (sizeof (struct child_thread));
+  child_thread_init (child_data, t);
+  t->child_data = child_data;
+  child_data->parent = thread_current ();
+  list_push_back (&thread_current ()->children, &t->child_data->child_elem);
+
+
   intr_set_level (old_level);
 
   /* Add to run queue. */
@@ -335,7 +344,11 @@ thread_exit (void)
      and schedule another process.  That process will destroy us
      when it calls thread_schedule_tail(). */
   intr_disable ();
-  list_remove (&thread_current()->allelem);
+  list_remove (&thread_current ()->allelem);
+  if (&thread_current ()->child_data->child_elem)
+  {
+    list_remove (&thread_current ()->child_data->child_elem);
+  }
   thread_current ()->status = THREAD_DYING;
   schedule ();
   NOT_REACHED ();
@@ -378,7 +391,7 @@ thread_foreach (thread_action_func *func, void *aux)
 
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void
-thread_set_priority (int new_priority) 
+thread_set_priority (int new_priority)
 {
   if(thread_mlfqs)
     return;
@@ -614,6 +627,14 @@ init_thread (struct thread *t, const char *name, int priority)
   list_init(&t->donations);
   enum intr_level old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
+
+  // sema_init (&t->parent_wait_sema, 0);
+  // struct child_thread *child_data = malloc (sizeof (struct child_thread));
+  // t->child_data = child_data;
+  // child_thread_init (t->child_data, t);
+  
+  list_init (&t->children);
+  list_init (&t->file_descriptors);
   intr_set_level (old_level);
 }
 
@@ -833,4 +854,72 @@ remove_with_lock(struct lock *lock)
 	  }
     e = next;
   }
+}
+
+struct thread *
+find_child_thread (tid_t tid)
+{
+  struct list_elem *e;
+  struct list *children = &thread_current ()->children;
+  for (e = list_begin (children); e != list_end (children); e = list_next (e))
+  {
+    struct child_thread *cht = list_entry(e, struct child_thread, child_elem);
+    if (cht->child_tid == tid)
+    {
+      return cht;
+    }
+  }
+  return NULL;
+}
+
+bool is_child (struct thread *t)
+{
+  struct list_elem *e;  
+  struct list *children = &(thread_current ()->children);
+  for (e = list_begin (children); e != list_end (children); e = list_next (e))
+  {
+    struct thread *t1 = list_entry(e, struct child_thread, child_elem)->child;
+    if (t1->tid == t->tid)
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+void
+child_thread_init (struct child_thread *cht, struct thread *t)
+{
+  cht->child = t;
+  cht->child_tid = t->tid;
+  cht->exit_status = -1;
+  sema_init (&cht->parent_wait_sema, 0);
+}
+
+void 
+file_descriptor_init (struct file_descriptor *file_descriptor,
+                           struct file *file_pointer, int file_handle)
+{
+  ASSERT (file_descriptor != NULL);
+
+  file_descriptor->file_pointer = file_pointer;
+  file_descriptor->file_handle = file_handle;
+}
+
+struct file_descriptor *get_file_descriptor (int file_handle) 
+{
+  struct list_elem *e = list_begin(&thread_current ()->file_descriptors);
+  struct list_elem *next;
+  while (e != list_end(&thread_current ()->file_descriptors))
+  {
+    struct file_descriptor *fd = list_entry(e, struct file_descriptor, file_elem);
+    next = list_next(e);
+    if (fd->file_handle == file_handle)
+    {
+      return fd;
+    }
+    e = next;
+  }
+  return NULL;
 }
