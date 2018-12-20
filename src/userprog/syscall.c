@@ -15,7 +15,7 @@
 
 typedef uint32_t pid_t;
 #define EXIT_ERROR -1
-
+#define USER_VADDR_BOTTOM ((void *) 0x08048000)
 struct lock file_system_lock;
 
 static void syscall_handler (struct intr_frame *);
@@ -66,7 +66,7 @@ syscall_handler (struct intr_frame *f UNUSED)
         }
         else 
         {
-          int status = *(int *)(esp + 4);
+          int status = *(int *)(esp + 4); status = *((int*)f->esp+1);
           process_exit_handler (status);
         }
         break;
@@ -99,7 +99,7 @@ syscall_handler (struct intr_frame *f UNUSED)
       }
     case SYS_CREATE:                 /* Create a file. */
       {
-        if (!check_for_valid_address (esp + 4) || 
+        if (!check_for_valid_address (esp + 4) ||
                     !check_for_valid_address (esp + 8))
         {
           process_exit_handler (EXIT_ERROR);
@@ -109,7 +109,7 @@ syscall_handler (struct intr_frame *f UNUSED)
           char *file_name = *(int *)(esp + 4);
           uint32_t initial_size = *(uint32_t *)(esp + 8);
           f->eax = create_file_handler (file_name, initial_size);
-        }
+         }
         break;
       }
     case SYS_REMOVE:                 /* Delete a file. */
@@ -169,7 +169,7 @@ syscall_handler (struct intr_frame *f UNUSED)
       } 
     case SYS_SEEK:                   /* Change position in a file. */
       {
-       if (!check_for_valid_address (esp + 4) || 
+       if (!check_for_valid_address (esp + 4) ||
                     !check_for_valid_address (esp + 8))
         {
           process_exit_handler (EXIT_ERROR);
@@ -215,7 +215,7 @@ syscall_handler (struct intr_frame *f UNUSED)
 }
 
 bool check_for_valid_address (void *pointer) {
-  if (!is_user_vaddr (pointer))
+  if (!is_user_vaddr (pointer)|| pointer < USER_VADDR_BOTTOM)
     return false;
   void *addr = pagedir_get_page (thread_current (), pointer);
   if (!addr)
@@ -240,7 +240,7 @@ process_exit_handler (int status)
     struct file_descriptor *fd = list_entry (list_itr, struct file_descriptor, file_elem);
     close_file_handler (fd->file_handle);
   }
-
+printf ("%s: exit(%d)\n", thread_current()->name, status);
   thread_exit ();
 }
 

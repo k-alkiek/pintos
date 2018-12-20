@@ -150,7 +150,7 @@ process_exit (void)
       pagedir_activate (NULL);
       pagedir_destroy (pd);
     }
-  printf("%s: exit(%d)\n",cur->name,0);
+  //printf("%s: exit(%d)\n",cur->name,0);
 }
 
 /* Sets up the CPU for running user code in the current
