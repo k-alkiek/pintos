@@ -28,8 +28,6 @@ static void push_argc_into_stack(char** parse, int size, void **esp);
 tid_t
 process_execute (const char *file_name) 
 {
-  
-
   char *fn_copy;
   tid_t tid;
   char *save;
@@ -46,12 +44,7 @@ process_execute (const char *file_name)
   tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
   if (tid == TID_ERROR)
     palloc_free_page (fn_copy); 
-
-  /* Append new thread to current thread children */
-  struct thread *new_thread = find_thread (tid);
-  list_push_back (&thread_current ()->children, &new_thread->child_elem);
-  new_thread->parent = thread_current ();
-
+  
   return tid;
 }
 
@@ -116,14 +109,20 @@ process_wait (tid_t child_tid UNUSED)
 
   //TODO:
   //      Avoid additional waiting
-  struct thread *child_thread = find_thread (child_tid);
-  
-  if (is_child(child_thread))
+  struct child_thread *cht = find_child_thread (child_tid);
+
+  if (cht == NULL) return -1;
+  struct thread *child = cht->child;
+  if (is_child (child))
   {
-    sema_down(&child_thread->parent_wait_sema);
+    sema_down(&cht->parent_wait_sema);
   }
 
-  return child_thread->status;
+  int exit_status = cht->exit_status;
+  free (cht);
+  return exit_status;
+  // return child_thread->status;
+  
 }
 
 /* Free the current process's resources. */
@@ -132,7 +131,7 @@ process_exit (void)
 {
   struct thread *cur = thread_current ();
   uint32_t *pd;
-  sema_up (&cur->parent_wait_sema);
+  sema_up (&cur->child_data->parent_wait_sema);
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
@@ -151,8 +150,7 @@ process_exit (void)
       pagedir_destroy (pd);
     }
 
-  //printf("%s: exit(%d)\n",cur->name,0);
-
+  // printf("%s: exit(%d)\n",cur->name,0);
 }
 
 /* Sets up the CPU for running user code in the current

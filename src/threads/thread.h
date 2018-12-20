@@ -88,6 +88,18 @@ typedef int tid_t;
    only because they are mutually exclusive: only a thread in the
    ready state is on the run queue, whereas only a thread in the
    blocked state is on a semaphore wait list. */
+
+// Contains child relevant data. Resides in child thread
+struct child_thread
+  {
+    struct thread *child;
+    int child_tid;
+    struct thread *parent;
+    struct semaphore parent_wait_sema;
+    struct list_elem child_elem;
+    int exit_status;
+  };
+  
 struct thread
   {
     /* Owned by thread.c. */
@@ -115,11 +127,12 @@ struct thread
     struct list_elem donation_elem;
     struct lock *waiting_on;
 
-    struct thread *parent;
+    // struct thread *parent;
     /* Children */
-    struct semaphore parent_wait_sema;
+    // struct semaphore parent_wait_sema;
     struct list children;
-    struct list_elem child_elem;
+    struct child_thread *child_data;
+    // struct list_elem child_elem;
 
     struct list file_descriptors;
     uint32_t fd_counter; /*  */
@@ -131,6 +144,8 @@ struct file_descriptor
     int file_handle;
     struct list_elem file_elem;
   };
+
+
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
@@ -184,8 +199,9 @@ void refresh_priority ();
 
 void file_descriptor_init (struct file_descriptor *file_descriptor,
                            struct file *file_pointer, int file_handle);
+void child_thread_init (struct child_thread *, struct thread *);
 
-struct thread *find_thread (int);
+struct thread *find_child_thread (int);
 bool is_child (struct thread *);
 struct file_descriptor *get_file_descriptor (int);
 
