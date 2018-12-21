@@ -47,9 +47,16 @@ syscall_init (void)
 static void
 syscall_handler (struct intr_frame *f UNUSED) 
 {
+  
   void *esp = (int *)(f->esp);
+  
+  if (!check_for_valid_address (esp+4))
+    {
+          
+          process_exit_handler (EXIT_ERROR);
+    }
   int syscall_type = * (int *) esp;
-
+  
   switch (syscall_type)
     {
     // TODO Parsing arguments and handling memory accessing
@@ -227,13 +234,19 @@ syscall_handler (struct intr_frame *f UNUSED)
         }
         break;
       }
+    default:
+      {
+        
+        process_exit_handler (EXIT_ERROR);
+      }
     }
-
+  
   // printf ("system call!\n");
   // thread_exit ();
 }
 
 bool check_for_valid_address (void *pointer) {
+  
   if (!is_user_vaddr (pointer)|| pointer < USER_VADDR_BOTTOM)
     return false;
   
@@ -284,6 +297,14 @@ process_wait_handler (pid_t pid)
 static bool
 create_file_handler (const char *file_name, uint32_t initial_size)
 {
+  if(file_name == NULL)
+  {
+    process_exit_handler(EXIT_ERROR);
+  }
+  if(!check_for_valid_address((void*)file_name))
+  {
+    process_exit_handler(EXIT_ERROR);
+  }
   lock_acquire (&file_system_lock);
   bool status = filesys_create (file_name, initial_size);
   lock_release (&file_system_lock);
@@ -293,15 +314,32 @@ create_file_handler (const char *file_name, uint32_t initial_size)
 static bool
 remove_file_handler (const char *file_name)
 {
+  if(file_name == NULL)
+  {
+    process_exit_handler(EXIT_ERROR);
+  }
+  if(!check_for_valid_address((void*)file_name))
+  {
+    process_exit_handler(EXIT_ERROR);
+  }
   lock_acquire (&file_system_lock);
   bool status = filesys_remove (file_name);
   lock_release (&file_system_lock);
   return status;
 }
 
+
 static int
 open_file_handler (const char *file_name)
 {
+  if(file_name == NULL)
+  {
+    process_exit_handler(EXIT_ERROR);
+  }
+  if(!check_for_valid_address((void*)file_name))
+  {
+    process_exit_handler(EXIT_ERROR);
+  }
   lock_acquire (&file_system_lock);
   struct file *file = filesys_open (file_name);
   int status = -1;
@@ -334,13 +372,22 @@ get_file_size_handler (int fd)
 static int
 read_from_file_handler (int fd, char *buffer, uint32_t size)
 {
+  if(!check_for_valid_address((void*)buffer) &&
+      !check_for_valid_address((void*)buffer+ size - 1))
+  {
+    process_exit_handler(EXIT_ERROR);
+  }
+  
   int status = -1;
+
   if (fd != 0)
   {
     lock_acquire (&file_system_lock);
-    struct file *file_pointer = get_file_descriptor (fd)->file_pointer;
-    if (file_pointer != NULL) 
+    
+    struct file_descriptor* file_d = get_file_descriptor (fd);
+    if (file_d != NULL && file_d->file_pointer != NULL) 
     {
+      struct file *file_pointer = file_d->file_pointer;
       status = file_read (file_pointer, buffer, size);
     }
     lock_release (&file_system_lock);
@@ -359,6 +406,11 @@ read_from_file_handler (int fd, char *buffer, uint32_t size)
 static int
 write_into_file_handler (int fd, char *buffer, int size)
 {
+  if(!check_for_valid_address((void*)buffer) &&
+      !check_for_valid_address((void*)buffer+ size - 1))
+  {
+    process_exit_handler(EXIT_ERROR);
+  }
   int status = -1;
   if (fd == 1)
   {
@@ -368,9 +420,10 @@ write_into_file_handler (int fd, char *buffer, int size)
   else
   {
     lock_acquire (&file_system_lock);
-    struct file *file_pointer = get_file_descriptor (fd)->file_pointer;
-    if (file_pointer != NULL) 
+    struct file_descriptor* file_d = get_file_descriptor (fd);
+    if (file_d != NULL && file_d->file_pointer != NULL) 
     {
+      struct file *file_pointer = file_d->file_pointer;
       status = file_write (file_pointer, buffer, size);
     }
     lock_release (&file_system_lock);

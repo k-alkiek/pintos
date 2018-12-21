@@ -911,10 +911,12 @@ struct file_descriptor *get_file_descriptor (int file_handle)
 {
   struct list_elem *e = list_begin(&thread_current ()->file_descriptors);
   struct list_elem *next;
-  while (e != list_end(&thread_current ()->file_descriptors))
+  
+  while (!list_empty(&thread_current ()->file_descriptors) &&
+      e != list_end(&thread_current ()->file_descriptors))
   {
     struct file_descriptor *fd = list_entry(e, struct file_descriptor, file_elem);
-    next = list_next(e);
+    next = list_next(e);  
     if (fd->file_handle == file_handle)
     {
       return fd;

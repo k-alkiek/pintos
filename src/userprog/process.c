@@ -107,10 +107,11 @@ process_wait (tid_t child_tid UNUSED)
   // check if child
   //
 
+
   //TODO:
   //      Avoid additional waiting
   struct child_thread *cht = find_child_thread (child_tid);
-
+  if(cht->child->status == THREAD_DYING) return -1;
   if (cht == NULL) return -1;
   struct thread *child = cht->child;
   if (is_child (child))
