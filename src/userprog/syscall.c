@@ -286,8 +286,10 @@ process_execute_handler (const char *process_name)
 {
   // Process name must be added to thread struct
   struct file *fp;
+  char* rest; 
+  char* file_name = strtok_r((char *) process_name, " ", &rest); 
   lock_acquire (&file_system_lock);
-  fp = filesys_open (process_name);
+  fp = filesys_open (file_name);
   lock_release (&file_system_lock);
   if (fp == NULL)
   {
