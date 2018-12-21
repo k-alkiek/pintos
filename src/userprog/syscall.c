@@ -47,9 +47,9 @@ syscall_init (void)
 static void
 syscall_handler (struct intr_frame *f UNUSED) 
 {
-  
   void *esp = (int *)(f->esp);
   
+
   if (!check_for_valid_address (esp))
     {  
       process_exit_handler (EXIT_ERROR);
@@ -288,7 +288,11 @@ process_execute_handler (const char *process_name)
   // Process name must be added to thread struct
   struct file *fp;
   char* rest; 
-  char* file_name = strtok_r((char *) process_name, " ", &rest); 
+  char* file_name = malloc((sizeof(char)* strlen(process_name))+1);
+  memcpy(file_name, process_name, strlen(process_name)+1);
+
+  file_name = strtok_r ((char *)file_name," ",&rest);
+
   lock_acquire (&file_system_lock);
   fp = filesys_open (file_name);
   lock_release (&file_system_lock);

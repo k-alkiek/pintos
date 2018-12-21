@@ -856,7 +856,7 @@ remove_with_lock(struct lock *lock)
   }
 }
 
-struct thread *
+struct child_thread *
 find_child_thread (tid_t tid)
 {
   struct list_elem *e;

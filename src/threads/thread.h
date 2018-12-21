@@ -201,7 +201,7 @@ void file_descriptor_init (struct file_descriptor *file_descriptor,
                            struct file *file_pointer, int file_handle);
 void child_thread_init (struct child_thread *, struct thread *);
 
-struct thread *find_child_thread (int);
+struct child_thread *find_child_thread (int);
 bool is_child (struct thread *);
 struct file_descriptor *get_file_descriptor (int);
 

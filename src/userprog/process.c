@@ -38,10 +38,15 @@ process_execute (const char *file_name)
   if (fn_copy == NULL)
     return TID_ERROR;
   strlcpy (fn_copy, file_name, PGSIZE);
-  file_name = strtok_r ((char *)file_name," ",&save);
+  
+  char* new_file_name = malloc((sizeof(char)* strlen(file_name))+1);
+  memcpy(new_file_name, file_name, strlen(file_name)+1);
+
+  new_file_name = strtok_r ((char *)new_file_name," ",&save);
+
   /* Create a new thread to execute FILE_NAME. */
   
-  tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
+  tid = thread_create (new_file_name, PRI_DEFAULT, start_process, fn_copy);
   if (tid == TID_ERROR)
     palloc_free_page (fn_copy); 
   
@@ -98,21 +103,10 @@ start_process (void *file_name_)
 int
 process_wait (tid_t child_tid UNUSED) 
 {
-  // while(true)
-  // {
-  // thread_yield();
-  // }
-
-  // get process from tid
-  // check if child
-  //
-
-
-  //TODO:
-  //      Avoid additional waiting
   struct child_thread *cht = find_child_thread (child_tid);
-  if(cht->child->status == THREAD_DYING) return -1;
-  if (cht == NULL) return -1;
+  if (cht == NULL) {
+    return -1;
+  }
   struct thread *child = cht->child;
   if (is_child (child))
   {
@@ -120,10 +114,9 @@ process_wait (tid_t child_tid UNUSED)
   }
 
   int exit_status = cht->exit_status;
+  list_remove(&cht->child_elem);
   free (cht);
   return exit_status;
-  // return child_thread->status;
-  
 }
 
 /* Free the current process's resources. */
