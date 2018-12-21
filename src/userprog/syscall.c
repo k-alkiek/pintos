@@ -285,6 +285,14 @@ static pid_t
 process_execute_handler (const char *process_name)
 {
   // Process name must be added to thread struct
+  struct file *fp;
+  lock_acquire (&file_system_lock);
+  fp = filesys_open (process_name);
+  lock_release (&file_system_lock);
+  if (fp == NULL)
+  {
+    return EXIT_ERROR;
+  }
   return process_execute (process_name);
 }
 
