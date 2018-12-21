@@ -50,10 +50,9 @@ syscall_handler (struct intr_frame *f UNUSED)
   
   void *esp = (int *)(f->esp);
   
-  if (!check_for_valid_address (esp+4))
-    {
-          
-          process_exit_handler (EXIT_ERROR);
+  if (!check_for_valid_address (esp))
+    {  
+      process_exit_handler (EXIT_ERROR);
     }
   int syscall_type = * (int *) esp;
   
@@ -163,7 +162,7 @@ syscall_handler (struct intr_frame *f UNUSED)
       {
         if (!check_for_valid_address (esp + 4) || 
                     !check_for_valid_address (esp + 8) ||
-                    !check_for_valid_address (esp + 12))
+                    !check_for_valid_address (esp + 12) )
         {
           process_exit_handler (EXIT_ERROR);
         }
@@ -246,7 +245,9 @@ syscall_handler (struct intr_frame *f UNUSED)
 }
 
 bool check_for_valid_address (void *pointer) {
-  
+  if(pointer == NULL)
+    return false;
+
   if (!is_user_vaddr (pointer)|| pointer < USER_VADDR_BOTTOM)
     return false;
   
