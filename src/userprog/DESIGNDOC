@@ -135,12 +135,31 @@ After the child thread exit remove the child element from its parent list of chi
 >> loading.  How does your code ensure this?  How is the load
 >> success/failure status passed back to the thread that calls "exec"?
 
+- When executing a new process, we force the parent to wait until the child loads
+successfuly. Our implementation uses a 0 initialized semaphore for this mechanism. 
+After creating the child process, the parent downs the semaphore and gets blocked.
+As soon as the child loads, it stores a boolean value of its success in the child_thread
+struct and signals the parent. The parent upon waking checks for this value and
+returns -1 if the child was not successfuly loaded.
+
 >> B8: Consider parent process P with child process C.  How do you
 >> ensure proper synchronization and avoid race conditions when P
 >> calls wait(C) before C exits?  After C exits?  How do you ensure
 >> that all resources are freed in each case?  How about when P
 >> terminates without waiting, before C exits?  After C exits?  Are
 >> there any special cases?
+
+- If wait is called on a non existing child process, it terminates returning -1.
+ If it is called on an existing process, we use the semaphore parent_wait_sema
+ to force the parent to wait. The child process upon exit will set its exit status
+ in the child_thread struct and signals the parent to continue before terminating.
+ The parent then continues to read the exit status and returns it accordignly. As for
+ resources, we ensure that all files opened by the process are closed upon exit since
+ we maintain a list of file descriptors associated with each process.
+
+ P can terminate without waiting for C. this will not affect C and it will continue running as
+ an orphaned process
+
 
 ---- RATIONALE ----
 
