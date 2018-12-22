@@ -37,14 +37,23 @@ Khaled Barie <k.alkiek@gmail.com>
 >> you arrange for the elements of argv[] to be in the right order?
 >> How do you avoid overflowing the stack page?
 
-In the process_execute, a new thread is created with the name of the command using strtok_r () to get the name of the command. Also getting all arguments using strtok_r () with a space as a delimiter. In the load method, A helper function is called (push_argc_into_stack) to push all the arguments into the stack in reverse order starting from argc-1 to 0 to be in right order as in the documentation figure.
-To avoid the overflowing of the stack page, we limit the number of arguments that can pass argc[50] to fit the page size (4 k) as i the documentation assumption.
+In the process_execute, a new thread is created with the name of the
+command using strtok_r () to get the name of the command. Also getting
+all arguments using strtok_r () with a space as a delimiter. In the load
+method, A helper function is called (push_argc_into_stack) to push all
+the arguments into the stack in reverse order starting from argc-1 to 0
+to be in right order as in the documentation figure.
+To avoid the overflowing of the stack page, we limit the number of arguments
+that can pass argc[50] to fit the page size (4 k) as i the documentation assumption.
 
 ---- RATIONALE ----
 
 >> A3: Why does Pintos implement strtok_r() but not strtok()?
 
-The difference between them that in strtok(), the user sends the save pointer to the function. Pintos implement strtok_r() so that if there are multiple threads, the save pointer of each thread won't interfere with other threads' save pointers when we retrieve the rest of words in the string.
+The difference between them that in strtok(), the user sends the save pointer
+to the function. Pintos implement strtok_r() so that if there are multiple
+threads, the save pointer of each thread won't interfere with other threads'
+save pointers when we retrieve the rest of words in the string.
 
 >> A4: In Pintos, the kernel separates commands into a executable name
 >> and arguments.  In Unix-like systems, the shell does this
@@ -72,20 +81,24 @@ struct child_thread
     struct list_elem child_elem;
     int exit_status;
   };
-- We added file descriptor struct to contain information about each file used by the process like file pointer and the file handle.
+- We added file descriptor struct to contain information about each file used
+by the process like file pointer and the file handle.
 struct file_descriptor
   {
     struct file *file_pointer;
     int file_handle;
     struct list_elem file_elem;
   };
-- We also added (fd_counter) a file descroptor handle counter to assign unique handle for each open file.
-- In syscall.c we added (file_system_lock) to handle synchroniazation of multithreaded programs which deals with the file system to avoid race conditions.
+- We also added (fd_counter) a file descroptor handle counter to assign unique
+handle for each open file.
+- In syscall.c we added (file_system_lock) to handle synchroniazation of multithreaded
+programs which deals with the file system to avoid race conditions.
 
 >> B2: Describe how file descriptors are associated with open files.
 >> Are file descriptors unique within the entire OS or just within a
 >> single process?
-File descriptors is list of file descriptor which is an object that contains the file's pointer and the file's handle (file handle is a unique number that assigned for each opened file).
+File descriptors is list of file descriptor which is an object that contains the file's
+pointer and the file's handle (file handle is a unique number that assigned for each opened file).
 The file descriptors are unique just within a single process not the entire OS.
 
 ---- ALGORITHMS ----
@@ -93,9 +106,14 @@ The file descriptors are unique just within a single process not the entire OS.
 >> B3: Describe your code for reading and writing user data from the
 >> kernel.
 
-- In read: First of all check if the buffer and the buffer + size are a valid pointers or not, if not exit with error, otherwise check the file descriptor number (fd) if fd equal zero then read data from console (STDIN) using input_getc () finction otherwise read user data from the corresponding file.
+- In read: First of all check if the buffer and the buffer + size are a valid pointers
+or not, if not exit with error, otherwise check the file descriptor number (fd) if fd
+equal zero then read data from console (STDIN) using input_getc () finction otherwise
+read user data from the corresponding file.
 
-- In write: it performs the same as read but instead of reading it writes, if the fd equal one the write into the console (STDOUT) using putbuf(buffer, size) function otherwise write into the corresponding file.
+- In write: it performs the same as read but instead of reading it writes, if the fd
+equal one the write into the console (STDOUT) using putbuf(buffer, size) function
+otherwise write into the corresponding file.
 
 >> B4: Suppose a system call causes a full page (4,096 bytes) of data
 >> to be copied from user space into the kernel.  What is the least
@@ -104,15 +122,20 @@ The file descriptors are unique just within a single process not the entire OS.
 >> for a system call that only copies 2 bytes of data?  Is there room
 >> for improvement in these numbers, and how much?
 
-For a contiguous distribution of data (full page of data) we need only one inspection of the page table to get the page head back.
+For a contiguous distribution of data (full page of data) we need only one
+inspection of the page table to get the page head back.
 The greatest possible number might be 4,096 if it is not contiguous.
-When it’s contiguous, the greatest number would be 2, we surely want to check the start pointer and the end pointer of the full page data. 
+When it’s contiguous, the greatest number would be 2, we surely want to check the
+start pointer and the end pointer of the full page data. 
 
 >> B5: Briefly describe your implementation of the "wait" system call
 >> and how it interacts with process termination.
 
-First of all we check if the thread with the tid passed to wait is a child of the current thread, if not exit with error, otherwise the current thread wait on the child wait semaphore (parent_wait_sema) until the child thread exit.
-After the child thread exit remove the child element from its parent list of children to avoid multiple waiting and assign the child exit status.
+First of all we check if the thread with the tid passed to wait is a child of the
+current thread, if not exit with error, otherwise the current thread wait on the 
+child wait semaphore (parent_wait_sema) until the child thread exit.
+After the child thread exit remove the child element from its parent list of children
+to avoid multiple waiting and assign the child exit status.
 
 >> B6: Any access to user program memory at a user-specified address
 >> can fail due to a bad pointer value.  Such accesses must cause the
