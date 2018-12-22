@@ -1,0 +1,870 @@
+warning: test tests/userprog/exec-bound-3 doesn't count for grading
+warning: test tests/userprog/exec-bound-2 doesn't count for grading
+warning: test tests/userprog/exec-bound doesn't count for grading
+warning: test tests/userprog/sc-boundary-3 doesn't count for grading
+TOTAL TESTING SCORE: 75.2%
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+SUMMARY BY TEST SET
+
+Test Set                                      Pts Max  % Ttl  % Max
+--------------------------------------------- --- --- ------ ------
+tests/userprog/Rubric.functionality            87/108  28.2%/ 35.0%
+tests/userprog/Rubric.robustness               88/ 88  25.0%/ 25.0%
+tests/userprog/no-vm/Rubric                     0/  1   0.0%/ 10.0%
+tests/filesys/base/Rubric                      22/ 30  22.0%/ 30.0%
+--------------------------------------------- --- --- ------ ------
+Total                                                  75.2%/100.0%
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+SUMMARY OF INDIVIDUAL TESTS
+
+Functionality of system calls (tests/userprog/Rubric.functionality):
+	- Test argument passing on Pintos command line.
+	     3/ 3 tests/userprog/args-none
+	     3/ 3 tests/userprog/args-single
+	     3/ 3 tests/userprog/args-multiple
+	     3/ 3 tests/userprog/args-many
+	     3/ 3 tests/userprog/args-dbl-space
+
+	- Test "create" system call.
+	     3/ 3 tests/userprog/create-empty
+	     3/ 3 tests/userprog/create-long
+	     3/ 3 tests/userprog/create-normal
+	     3/ 3 tests/userprog/create-exists
+
+	- Test "open" system call.
+	     3/ 3 tests/userprog/open-missing
+	     3/ 3 tests/userprog/open-normal
+	     3/ 3 tests/userprog/open-twice
+
+	- Test "read" system call.
+	     3/ 3 tests/userprog/read-normal
+	     3/ 3 tests/userprog/read-zero
+
+	- Test "write" system call.
+	     3/ 3 tests/userprog/write-normal
+	     3/ 3 tests/userprog/write-zero
+
+	- Test "close" system call.
+	     3/ 3 tests/userprog/close-normal
+
+	- Test "exec" system call.
+	     5/ 5 tests/userprog/exec-once
+	     5/ 5 tests/userprog/exec-multiple
+	     5/ 5 tests/userprog/exec-arg
+
+	- Test "wait" system call.
+	     5/ 5 tests/userprog/wait-simple
+	     5/ 5 tests/userprog/wait-twice
+
+	- Test "exit" system call.
+	     5/ 5 tests/userprog/exit
+
+	- Test "halt" system call.
+	     3/ 3 tests/userprog/halt
+
+	- Test recursive execution of user programs.
+	  ** 0/15 tests/userprog/multi-recurse
+
+	- Test read-only executable feature.
+	     3/ 3 tests/userprog/rox-simple
+	  ** 0/ 3 tests/userprog/rox-child
+	  ** 0/ 3 tests/userprog/rox-multichild
+
+	- Section summary.
+	     25/ 28 tests passed
+	     87/108 points subtotal
+
+Robustness of system calls (tests/userprog/Rubric.robustness):
+	- Test robustness of file descriptor handling.
+	     2/ 2 tests/userprog/close-stdin
+	     2/ 2 tests/userprog/close-stdout
+	     2/ 2 tests/userprog/close-bad-fd
+	     2/ 2 tests/userprog/close-twice
+	     2/ 2 tests/userprog/read-bad-fd
+	     2/ 2 tests/userprog/read-stdout
+	     2/ 2 tests/userprog/write-bad-fd
+	     2/ 2 tests/userprog/write-stdin
+	     2/ 2 tests/userprog/multi-child-fd
+
+	- Test robustness of pointer handling.
+	     3/ 3 tests/userprog/create-bad-ptr
+	     3/ 3 tests/userprog/exec-bad-ptr
+	     3/ 3 tests/userprog/open-bad-ptr
+	     3/ 3 tests/userprog/read-bad-ptr
+	     3/ 3 tests/userprog/write-bad-ptr
+
+	- Test robustness of buffer copying across page boundaries.
+	     3/ 3 tests/userprog/create-bound
+	     3/ 3 tests/userprog/open-boundary
+	     3/ 3 tests/userprog/read-boundary
+	     3/ 3 tests/userprog/write-boundary
+
+	- Test handling of null pointer and empty strings.
+	     2/ 2 tests/userprog/create-null
+	     2/ 2 tests/userprog/open-null
+	     2/ 2 tests/userprog/open-empty
+
+	- Test robustness of system call implementation.
+	     3/ 3 tests/userprog/sc-bad-arg
+	     3/ 3 tests/userprog/sc-bad-sp
+	     5/ 5 tests/userprog/sc-boundary
+	     5/ 5 tests/userprog/sc-boundary-2
+
+	- Test robustness of "exec" and "wait" system calls.
+	     5/ 5 tests/userprog/exec-missing
+	     5/ 5 tests/userprog/wait-bad-pid
+	     5/ 5 tests/userprog/wait-killed
+
+	- Test robustness of exception handling.
+	     1/ 1 tests/userprog/bad-read
+	     1/ 1 tests/userprog/bad-write
+	     1/ 1 tests/userprog/bad-jump
+	     1/ 1 tests/userprog/bad-read2
+	     1/ 1 tests/userprog/bad-write2
+	     1/ 1 tests/userprog/bad-jump2
+
+	- Section summary.
+	     34/ 34 tests passed
+	     88/ 88 points subtotal
+
+Functionality of features that VM might break (tests/userprog/no-vm/Rubric):
+
+	  ** 0/ 1 tests/userprog/no-vm/multi-oom
+
+	- Section summary.
+	      0/  1 tests passed
+	      0/  1 points subtotal
+
+Functionality of base file system (tests/filesys/base/Rubric):
+	- Test basic support for small files.
+	     1/ 1 tests/filesys/base/sm-create
+	     2/ 2 tests/filesys/base/sm-full
+	     2/ 2 tests/filesys/base/sm-random
+	     2/ 2 tests/filesys/base/sm-seq-block
+	     3/ 3 tests/filesys/base/sm-seq-random
+
+	- Test basic support for large files.
+	     1/ 1 tests/filesys/base/lg-create
+	     2/ 2 tests/filesys/base/lg-full
+	     2/ 2 tests/filesys/base/lg-random
+	     2/ 2 tests/filesys/base/lg-seq-block
+	     3/ 3 tests/filesys/base/lg-seq-random
+
+	- Test synchronized multiprogram access to files.
+	  ** 0/ 4 tests/filesys/base/syn-read
+	  ** 0/ 4 tests/filesys/base/syn-write
+	     2/ 2 tests/filesys/base/syn-remove
+
+	- Section summary.
+	     11/ 13 tests passed
+	     22/ 30 points subtotal
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+DETAILS OF tests/userprog/multi-recurse FAILURE:
+
+Kernel panic in run: PANIC at ../../threads/thread.c:319 in thread_current(): assertion `is_thread (t)' failed.
+Call stack: 0xc002a836 0x635f6461
+Translation of call stack:
+In kernel.o:
+0xc002a836: debug_panic (.../../lib/kernel/debug.c:38)
+0x635f6461: (unknown)
+
+OUTPUT FROM tests/userprog/multi-recurse:
+
+Copying tests/userprog/multi-recurse to scratch partition...
+qemu-system-x86_64 -device isa-debug-exit -hda /tmp/EBlXtVKEqB.dsk -m 4 -net none -nographic -monitor null
+c[?7l[2J[0mSeaBIOS (version rel-1.11.0-50-g14221cd86e-prebuilt.qemu-project.org)
+Booting from Hard Disk...
+PPiiLLoo  hhddaa1
+1
+LLooaaddiinngg.......................
+Kernel command line: -q -f extract run 'multi-recurse 15'
+Pintos booting with 3,968 kB RAM...
+367 pages available in kernel pool.
+367 pages available in user pool.
+Calibrating timer...  287,948,800 loops/s.
+hda: 5,040 sectors (2 MB), model "QM00001", serial "QEMU HARDDISK"
+hda1: 205 sectors (102 kB), Pintos OS kernel (20)
+hda2: 4,096 sectors (2 MB), Pintos file system (21)
+hda3: 121 sectors (60 kB), Pintos scratch (22)
+filesys: using hda2
+scratch: using hda3
+Formatting file system...done.
+Boot complete.
+Extracting ustar archive from scratch device into file system...
+Putting 'multi-recurse' into the file system...
+Erasing ustar archive...
+Executing 'multi-recurse 15':
+(multi-recurse) begin 15
+(multi-recurse) exec("multi-recurse 14")
+(multi-recurse) begin 14
+(multi-recurse) exec("multi-recurse 13")
+(multi-recurse) begin 13
+(multi-recurse) exec("multi-recurse 12")
+(multi-recurse) begin 12
+(multi-recurse) exec("multi-recurse 11")
+(multi-recurse) begin 11
+(multi-recurse) exec("multi-recurse 10")
+(multi-recurse) begin 10
+(multi-recurse) exec("multi-recurse 9")
+(multi-recurse) begin 9
+(multi-recurse) exec("multi-recurse 8")
+(multi-recurse) begin 8
+(multi-recurse) exec("multi-recurse 7")
+(multi-recurse) begin 7
+(multi-recurse) exec("multi-recurse 6")
+(multi-recurse) begin 6
+(multi-recurse) exec("multi-recurse 5")
+(multi-recurse) begin 5
+(multi-recurse) exec("multi-recurse 4")
+(multi-recurse) begin 4
+(multi-recurse) exec("multi-recurse 3")
+(multi-recurse) begin 3
+(multi-recurse) exec("multi-recurse 2")
+(multi-recurse) begin 2
+(multi-recurse) exec("multi-recurse 1")
+(multi-recurse) begin 1
+(multi-recurse) exec("multi-recurse 0")
+(multi-recurse) begin 0
+(multi-recurse) end 0
+multi-recurse: exit(0)
+(multi-recurse) end 1
+multi-recurse: exit(1)
+multi-recurse: exit(-1)
+multi-recurse: exit(-1)
+multi-recurse: exit(-1)
+multi-recurse: exit(-1)
+multi-recurse: exit(-1)
+multi-recurse: exit(-1)
+multi-recurse: exit(-1)
+mKernel PANIC at ../../threads/thread.c:319 in thread_current(): assertion `is_thread (t)' failed.
+Call stack: 0xc002a836 0x635f6461Kernel PANIC recursion at ../../threads/thread.c:319 in thread_current().
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000150 esp=cccccccc ebp=c0031e1c
+ cs=0008 ds=0010 es=0010 ss=cccc
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=cccccccc ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=cccc
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=cccccccc ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=cccc
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=cccccccc ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=cccc
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=cccccccc ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=cccc
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=cccccccc ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=cccc
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=cccccccc ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=cccc
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=c0105e0c ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=5e8c
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=c0105c8c ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=c0137030 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=7030
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=c0117030 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=000013b0 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=95b8
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=c003aeac ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0097
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0002
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=003ab003 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=c003
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=0032c003 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=d003
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=002ad063 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=e063
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=0022e003 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=f003
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=001af003 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0003
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=ccccccd8 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00130063 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=1063
+IInterrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=00000030 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=0000005b esp=00000000 ebp=c0030fa0
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=00000030 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=00000030 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=00000030 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=00000030 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+Interrupt 0000 (#DE Divide Error) at eip=0xc00245dc
+ cr2=00000030 error=00000000
+ eax=00000040 ebx=c0038fb0 ecx=c0107000 edx=00000000
+ esi=c0038fb0 edi=00000064 esp=00000000 ebp=c0031cfc
+ cs=0008 ds=0010 es=0010 ss=0000
+c[?7l[2J[0mSeaBIOS (version rel-1.11.0-50-g14221cd86e-prebuilt.qemu-project.org)
+Booting from Hard Disk...
+PPiiLLoo  hhddaa1
+1
+LLooaaddiinngg.......................
+Kernel command line: -q -f extract run 'multi-recurse 15'
+Pintos booting with 3,968 kB RAM...
+[...details of reboot(s) omitted...]
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+DETAILS OF tests/userprog/rox-child FAILURE:
+
+run: write "child-rox": FAILED
+
+OUTPUT FROM tests/userprog/rox-child:
+
+Copying tests/userprog/rox-child to scratch partition...
+Copying tests/userprog/child-rox to scratch partition...
+qemu-system-x86_64 -device isa-debug-exit -hda /tmp/nbWoTYqD2Z.dsk -m 4 -net none -nographic -monitor null
+c[?7l[2J[0mSeaBIOS (version rel-1.11.0-50-g14221cd86e-prebuilt.qemu-project.org)
+Booting from Hard Disk...
+PPiiLLoo  hhddaa1
+1
+LLooaaddiinngg........................
+Kernel command line: -q -f extract run rox-child
+Pintos booting with 3,968 kB RAM...
+367 pages available in kernel pool.
+367 pages available in user pool.
+Calibrating timer...  306,380,800 loops/s.
+hda: 5,040 sectors (2 MB), model "QM00001", serial "QEMU HARDDISK"
+hda1: 205 sectors (102 kB), Pintos OS kernel (20)
+hda2: 4,096 sectors (2 MB), Pintos file system (21)
+hda3: 230 sectors (115 kB), Pintos scratch (22)
+filesys: using hda2
+scratch: using hda3
+Formatting file system...done.
+Boot complete.
+Extracting ustar archive from scratch device into file system...
+Putting 'rox-child' into the file system...
+Putting 'child-rox' into the file system...
+Erasing ustar archive...
+Executing 'rox-child':
+(rox-child) begin
+(rox-child) open "child-rox"
+(rox-child) read "child-rox"
+(rox-child) write "child-rox"
+(rox-child) exec "child-rox 1"
+(child-rox) begin
+(child-rox) try to write "child-rox"
+(child-rox) try to write "child-rox"
+(child-rox) end
+child-rox: exit(12)
+(rox-child) write "child-rox"
+(rox-child) write "child-rox": FAILED
+rox-child: exit(1)
+Execution of 'rox-child' complete.
+Timer: 100 ticks
+Thread: 34 idle ticks, 54 kernel ticks, 13 user ticks
+hda2 (filesys): 149 reads, 467 writes
+hda3 (scratch): 229 reads, 2 writes
+Console: 1234 characters output
+Keyboard: 0 keys pressed
+Exception: 0 page faults
+Powering off...
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+DETAILS OF tests/userprog/rox-multichild FAILURE:
+
+run: write "child-rox": FAILED
+
+OUTPUT FROM tests/userprog/rox-multichild:
+
+Copying tests/userprog/rox-multichild to scratch partition...
+Copying tests/userprog/child-rox to scratch partition...
+qemu-system-x86_64 -device isa-debug-exit -hda /tmp/VazjpI35tw.dsk -m 4 -net none -nographic -monitor null
+c[?7l[2J[0mSeaBIOS (version rel-1.11.0-50-g14221cd86e-prebuilt.qemu-project.org)
+Booting from Hard Disk...
+PPiiLLoo  hhddaa1
+1
+LLooaaddiinngg........................
+Kernel command line: -q -f extract run rox-multichild
+Pintos booting with 3,968 kB RAM...
+367 pages available in kernel pool.
+367 pages available in user pool.
+Calibrating timer...  305,971,200 loops/s.
+hda: 5,040 sectors (2 MB), model "QM00001", serial "QEMU HARDDISK"
+hda1: 205 sectors (102 kB), Pintos OS kernel (20)
+hda2: 4,096 sectors (2 MB), Pintos file system (21)
+hda3: 230 sectors (115 kB), Pintos scratch (22)
+filesys: using hda2
+scratch: using hda3
+Formatting file system...done.
+Boot complete.
+Extracting ustar archive from scratch device into file system...
+Putting 'rox-multichild' into the file system...
+Putting 'child-rox' into the file system...
+Erasing ustar archive...
+Executing 'rox-multichild':
+(rox-multichild) begin
+(rox-multichild) open "child-rox"
+(rox-multichild) read "child-rox"
+(rox-multichild) write "child-rox"
+(rox-multichild) exec "child-rox 5"
+(child-rox) begin
+(child-rox) try to write "child-rox"
+(child-rox) exec "child-rox 4"
+(child-rox) begin
+(child-rox) try to write "child-rox"
+(child-rox) exec "child-rox 3"
+(child-rox) begin
+(child-rox) try to write "child-rox"
+(child-rox) exec "child-rox 2"
+(child-rox) begin
+(child-rox) try to write "child-rox"
+(child-rox) exec "child-rox 1"
+(child-rox) begin
+(child-rox) try to write "child-rox"
+(child-rox) try to write "child-rox"
+(child-rox) end
+child-rox: exit(12)
+(child-rox) try to write "child-rox"
+(child-rox) end
+child-rox: exit(12)
+(child-rox) try to write "child-rox"
+(child-rox) end
+child-rox: exit(12)
+(child-rox) try to write "child-rox"
+(child-rox) end
+child-rox: exit(12)
+(child-rox) try to write "child-rox"
+(child-rox) end
+child-rox: exit(12)
+(rox-multichild) write "child-rox"
+(rox-multichild) write "child-rox": FAILED
+rox-multichild: exit(1)
+Execution of 'rox-multichild' complete.
+Timer: 125 ticks
+Thread: 42 idle ticks, 48 kernel ticks, 36 user ticks
+hda2 (filesys): 361 reads, 467 writes
+hda3 (scratch): 229 reads, 2 writes
+Console: 1930 characters output
+Keyboard: 0 keys pressed
+Exception: 0 page faults
+Powering off...
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+DETAILS OF tests/userprog/no-vm/multi-oom FAILURE:
+
+run: wait returned -1.: FAILED
+
+OUTPUT FROM tests/userprog/no-vm/multi-oom:
+
+Copying tests/userprog/no-vm/multi-oom to scratch partition...
+qemu-system-x86_64 -device isa-debug-exit -hda /tmp/y0U2q5ZCHM.dsk -m 4 -net none -nographic -monitor null
+c[?7l[2J[0mSeaBIOS (version rel-1.11.0-50-g14221cd86e-prebuilt.qemu-project.org)
+Booting from Hard Disk...
+PPiiLLoo  hhddaa1
+1
+LLooaaddiinngg.......................
+.
+Kernel command line: -q -f extract run multi-oom
+Pintos booting with 3,968 kB RAM...
+367 pages available in kernel pool.
+367 pages available in user pool.
+Calibrating timer...  307,609,600 loops/s.
+hda: 5,040 sectors (2 MB), model "QM00001", serial "QEMU HARDDISK"
+hda1: 205 sectors (102 kB), Pintos OS kernel (20)
+hda2: 4,096 sectors (2 MB), Pintos file system (21)
+hda3: 126 sectors (63 kB), Pintos scratch (22)
+filesys: using hda2
+scratch: using hda3
+Formatting file system...done.
+Boot complete.
+Extracting ustar archive from scratch device into file system...
+Putting 'multi-oom' into the file system...
+Erasing ustar archive...
+Executing 'multi-oom':
+(multi-oom) begin
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+multi-oom: exit(-1)
+(multi-oom) wait returned -1.: FAILED
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+multi-oom: exit(1)
+Simulation terminated due to test failure.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+DETAILS OF tests/filesys/base/syn-read FAILURE:
+
+run: wait for child 1 of 10 returned -1 (expected 0): FAILED
+
+OUTPUT FROM tests/filesys/base/syn-read:
+
+Copying tests/filesys/base/syn-read to scratch partition...
+Copying tests/filesys/base/child-syn-read to scratch partition...
+qemu-system-x86_64 -device isa-debug-exit -hda /tmp/R3L1VzvUnF.dsk -m 4 -net none -nographic -monitor null
+c[?7l[2J[0mSeaBIOS (version rel-1.11.0-50-g14221cd86e-prebuilt.qemu-project.org)
+Booting from Hard Disk...
+PPiiLLoo  hhddaa1
+1
+LLooaaddiinngg.......................
+.
+Kernel command line: -q -f extract run syn-read
+Pintos booting with 3,968 kB RAM...
+367 pages available in kernel pool.
+367 pages available in user pool.
+Calibrating timer...  305,971,200 loops/s.
+hda: 5,040 sectors (2 MB), model "QM00001", serial "QEMU HARDDISK"
+hda1: 205 sectors (102 kB), Pintos OS kernel (20)
+hda2: 4,096 sectors (2 MB), Pintos file system (21)
+hda3: 238 sectors (119 kB), Pintos scratch (22)
+filesys: using hda2
+scratch: using hda3
+Formatting file system...done.
+Boot complete.
+Extracting ustar archive from scratch device into file system...
+Putting 'syn-read' into the file system...
+Putting 'child-syn-read' into the file system...
+Erasing ustar archive...
+Executing 'syn-read':
+(syn-read) begin
+(syn-read) create "data"
+(syn-read) open "data"
+(syn-read) write "data"
+(syn-read) close "data"
+(syn-read) exec child 1 of 10: "child-syn-read 0"
+(syn-read) exec child 2 of 10: "child-syn-read 1"
+load: child-syn-read: open failed
+(syn-read) exec child 3 of 10: "child-syn-read 2"
+load: child-syn-read: open failed
+(syn-read) exec child 4 of 10: "child-syn-read 3"
+load: child-syn-read: open failed
+(syn-read) exec child 5 of 10: "child-syn-read 4"
+load: child-syn-read: open failed
+(syn-read) exec child 6 of 10: "child-syn-read 5"
+load: child-syn-read: open failed
+(syn-read) exec child 7 of 10: "child-syn-read 6"
+load: child-syn-read: open failed
+(syn-read) exec child 8 of 10: "child-syn-read 7"
+load: child-syn-read: open failed
+(syn-read) exec child 9 of 10: "child-syn-read 8"
+load: child-syn-read: open failed
+(syn-read) exec child 10 of 10: "child-syn-read 9"
+load: child-syn-read: open failed
+(syn-read) wait for child 1 of 10 returned -1 (expected 0)
+(syn-read) wait for child 1 of 10 returned -1 (expected 0): FAILED
+syn-read: exit(1)
+Execution of 'syn-read' complete.
+Timer: 108 ticks
+Thread: 38 idle ticks, 50 kernel ticks, 20 user ticks
+hda2 (filesys): 149 reads, 490 writes
+hda3 (scratch): 237 reads, 2 writes
+Console: 1947 characters output
+Keyboard: 0 keys pressed
+Exception: 0 page faults
+Powering off...
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+DETAILS OF tests/filesys/base/syn-write FAILURE:
+
+run: wait for child 1 of 10 returned -1 (expected 0): FAILED
+
+OUTPUT FROM tests/filesys/base/syn-write:
+
+Copying tests/filesys/base/syn-write to scratch partition...
+Copying tests/filesys/base/child-syn-wrt to scratch partition...
+qemu-system-x86_64 -device isa-debug-exit -hda /tmp/Fwb5vp3Wfa.dsk -m 4 -net none -nographic -monitor null
+c[?7l[2J[0mSeaBIOS (version rel-1.11.0-50-g14221cd86e-prebuilt.qemu-project.org)
+Booting from Hard Disk...
+PPiiLLoo  hhddaa1
+1
+LLooaaddiinngg.......................
+.
+Kernel command line: -q -f extract run syn-write
+Pintos booting with 3,968 kB RAM...
+367 pages available in kernel pool.
+367 pages available in user pool.
+Calibrating timer...  306,790,400 loops/s.
+hda: 5,040 sectors (2 MB), model "QM00001", serial "QEMU HARDDISK"
+hda1: 205 sectors (102 kB), Pintos OS kernel (20)
+hda2: 4,096 sectors (2 MB), Pintos file system (21)
+hda3: 237 sectors (118 kB), Pintos scratch (22)
+filesys: using hda2
+scratch: using hda3
+Formatting file system...done.
+Boot complete.
+Extracting ustar archive from scratch device into file system...
+Putting 'syn-write' into the file system...
+Putting 'child-syn-wrt' into the file system...
+Erasing ustar archive...
+Executing 'syn-write':
+(syn-write) begin
+(syn-write) create "stuff"
+(syn-write) exec child 1 of 10: "child-syn-wrt 0"
+(syn-write) exec child 2 of 10: "child-syn-wrt 1"
+load: child-syn-wrt: open failed
+(syn-write) exec child 3 of 10: "child-syn-wrt 2"
+load: child-syn-wrt: open failed
+(syn-write) exec child 4 of 10: "child-syn-wrt 3"
+load: child-syn-wrt: open failed
+(syn-write) exec child 5 of 10: "child-syn-wrt 4"
+load: child-syn-wrt: open failed
+(syn-write) exec child 6 of 10: "child-syn-wrt 5"
+load: child-syn-wrt: open failed
+(syn-write) exec child 7 of 10: "child-syn-wrt 6"
+load: child-syn-wrt: open failed
+(syn-write) exec child 8 of 10: "child-syn-wrt 7"
+load: child-syn-wrt: open failed
+(syn-write) exec child 9 of 10: "child-syn-wrt 8"
+load: child-syn-wrt: open failed
+(syn-write) exec child 10 of 10: "child-syn-wrt 9"
+load: child-syn-wrt: open failed
+(syn-write) wait for child 1 of 10 returned -1 (expected 0)
+(syn-write) wait for child 1 of 10 returned -1 (expected 0): FAILED
+syn-write: exit(1)
+Execution of 'syn-write' complete.
+Timer: 106 ticks
+Thread: 39 idle ticks, 49 kernel ticks, 18 user ticks
+hda2 (filesys): 144 reads, 494 writes
+hda3 (scratch): 236 reads, 2 writes
+Console: 1876 characters output
+Keyboard: 0 keys pressed
+Exception: 0 page faults
+Powering off...
