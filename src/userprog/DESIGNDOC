@@ -151,6 +151,24 @@ to avoid multiple waiting and assign the child exit status.
 >> paragraphs, describe the strategy or strategies you adopted for
 >> managing these issues.  Give an example.
 
+- First of all we wrote a function that checks each memmory accessing we check if the pointer is null or not then check if that pointer is user virtual address or not and lower than the user virtual address bottom or not after that get the real address from thread's page directory and check if the real address not equal NULL.
+bool check_for_valid_address (void *pointer) {
+  if(pointer == NULL)
+    return false;
+
+  if (!is_user_vaddr (pointer)|| pointer < USER_VADDR_BOTTOM)
+    return false;
+  
+  void *addr = pagedir_get_page (thread_current ()->pagedir, pointer);
+  
+  if (!addr)
+  { 
+    return false;
+  }
+  return true;
+}
+If error occurs call process exit handler and the function's algorithms deals with allocated memory and exits the process correctly and return an error message.
+
 ---- SYNCHRONIZATION ----
 
 >> B7: The "exec" system call returns -1 if loading the new executable
@@ -189,8 +207,16 @@ returns -1 if the child was not successfuly loaded.
 >> B9: Why did you choose to implement access to user memory from the
 >> kernel in the way that you did?
 
+- 
+
 >> B10: What advantages or disadvantages can you see to your design
 >> for file descriptors?
+
+- Advantages:
+	- For each file there's a unique file descriptor and a container that contains the file pointer also.
+- Disadvantages:
+	- For each search it takes a linear time to search for a specific file.
+	- It also uses an extra memory in the thread structure.
 
 >> B11: The default tid_t to pid_t mapping is the identity mapping.
 >> If you changed it, what advantages are there to your approach?
